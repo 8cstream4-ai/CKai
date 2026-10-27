@@ -1,0 +1,40 @@
+name: CKai - Preuves accueil avant apres
+on:
+  workflow_run:
+    workflows: ['CKai - APK Android']
+    types: [completed]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  evidence:
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Recuperer les preuves avant correction
+        uses: actions/download-artifact@v4
+        with:
+          name: CKai-V2-avant
+          run-id: 40601088078
+          github-token: ${{ github.token }}
+          path: evidence/visual-proof
+      - name: Recuperer les preuves du nouvel APK
+        uses: actions/download-artifact@v4
+        with:
+          name: CKai-verification-Android-${{ github.event.workflow_run.run_number }}
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+          path: evidence
+      - name: Decrire les fichiers
+        run: |
+          echo 'CKai accueil : captures et videos AVANT / APRES.' > evidence/LIRE-MOI.txt
+          echo 'Ouvrir visual-proof/before et visual-proof/after. Les donnees et le profil CKaiTest sont synthetiques.' >> evidence/LIRE-MOI.txt
+          echo 'intro.mp4 enregistre le demarrage de l’accueil, la selection dune carte et la frappe. gfxinfo.txt contient la mesure de rendu de lemulateur.' >> evidence/LIRE-MOI.txt
+          echo 'motion-checks.json documente les controles de stabilite en animations reduites et economie de batterie. Les mesures sur un telephone physique restent distinctes.' >> evidence/LIRE-MOI.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CKai-Accueil-Avant-Apres
+          path: evidence
+          retention-days: 7

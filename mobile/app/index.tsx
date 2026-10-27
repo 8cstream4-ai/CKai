@@ -5,6 +5,14 @@ import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList, type FlashListRef } from '@shopify/flash-list';
 import * as Clipboard from 'expo-clipboard';
+import * as DocumentPicker from 'expo-document-picker';
+import * as ImagePicker from 'expo-image-picker';
+import * as Speech from 'expo-speech';
+import { Image } from 'expo-image';
+import { useDocumentReader } from '../src/features/documents';
+import { importAttachment, type Attachment } from '../src/features/attachments';
+import { Attachments, Gallery, Sources, VideoOverlay, WeatherCard } from '../src/features/rich-ui';
+import { Entrance, GlowFrame, Shimmer, AuroraOrb } from '../src/features/motion';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRuntime } from '../src/runtime';
 import { colorsFor, tokens, type Colors } from '../src/theme';
@@ -30,23 +38,29 @@ function notifyError() { Alert.alert('Action impossible', 'Cette action n’a pa
 async function copy(content: string) {
   try { await Clipboard.setStringAsync(content); } catch { notifyError(); }
 }
-const MessageRow = memo(function MessageRow({ message, colors, latest, busy, onRetry }: {
-  message: StoredMessage; colors: Colors; latest: boolean; busy: boolean; onRetry(id: string): void;
+const MessageRow = memo(function MessageRow({ message, colors, latest, busy, onRetry, onPlay, animate }: {
+  message: StoredMessage; colors: Colors; latest: boolean; busy: boolean; onRetry(id: string): void; onPlay(item: Attachment): void; animate: boolean;
 }) {
-  if (message.role === 'user') return <View style={{ alignItems: 'flex-end', marginBottom: 27, marginTop: 10 }}>
+  const [speaking, setSpeaking] = useState(false);
+  if (message.role === 'user') return <Entrance reduced={!animate}><View style={{ alignItems: 'flex-end', marginBottom: 27, marginTop: 10 }}>
     <Pressable accessibilityLabel="Ton message. Appui long pour copier." onLongPress={() => { void copy(message.content); }}
       style={{ maxWidth: '85%', backgroundColor: colors.user, paddingHorizontal: 18, paddingVertical: 13, borderRadius: tokens.radius.bubble, borderBottomRightRadius: 6 }}>
-      <Text selectable style={{ color: colors.ink, fontSize: 16, lineHeight: 24 }}>{message.content}</Text>
+      {message.rich?.attachments?.length ? <Attachments items={message.rich.attachments} colors={colors} onPlay={onPlay} /> : null}
+      <Text selectable style={{ color: colors.ink, fontSize: 16, lineHeight: 24, marginTop: message.rich?.attachments?.length ? 12 : 0 }}>{message.content}</Text>
     </Pressable>
-  </View>;
+  </View></Entrance>;
   return <View style={{ marginBottom: 26 }}>
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 15 }}><Logo size={25} /><Text style={{ color: colors.ink, fontSize: 12, fontWeight: '600' }}>CKai</Text></View>
-    <Markdown content={message.content} colors={colors} />
+    <Markdown content={message.content} colors={colors} sources={message.rich?.sources} active={animate && message.state === 'streaming'} />
+    {message.rich?.weather ? <WeatherCard data={message.rich.weather} colors={colors} /> : null}
+    {message.rich?.images?.length ? <Gallery items={message.rich.images} colors={colors} /> : null}
+    {message.rich?.attachments?.length ? <Attachments items={message.rich.attachments} colors={colors} onPlay={onPlay} /> : null}
+    <Sources sources={message.rich?.sources ?? []} colors={colors} />
     {!message.content && message.state === 'streaming' ? <ActivityIndicator color={colors.accent} style={{ alignSelf: 'flex-start', marginVertical: 10 }} /> : null}
     {message.error || message.state === 'interrupted' ? <View style={{ backgroundColor: colors.surface, padding: 14, marginTop: 14, borderRadius: 14, borderWidth: 1, borderColor: colors.line }}><Text accessibilityLiveRegion="polite" style={{ color: colors.muted, fontSize: 13, lineHeight: 21 }}>{message.error || 'La génération a été interrompue à la fermeture de l’application. Tu peux réessayer.'}</Text></View> : null}
     {message.state === 'stopped' ? <Text style={{ color: colors.muted, fontSize: 11, marginTop: 12 }}>Réponse arrêtée · texte conservé</Text> : null}
     {message.state !== 'streaming' ? <View style={{ flexDirection: 'row', marginLeft: -10, marginTop: 5 }}>
-      {message.content ? <><IconButton name="copy-outline" label="Copier la réponse" colors={colors} onPress={() => { void copy(message.content); }} /><IconButton name="share-outline" label="Partager la réponse" colors={colors} onPress={() => { void Share.share({ message: message.content }).catch(notifyError); }} /></> : null}
+      {message.content ? <><IconButton name="copy-outline" label="Copier la réponse" colors={colors} onPress={() => { void copy(message.content); }} /><IconButton name={speaking ? 'volume-mute-outline' : 'volume-high-outline'} label={speaking ? 'Arrêter la lecture' : 'Lire la réponse'} colors={colors} onPress={() => { void Speech.stop(); if (!speaking) { setSpeaking(true); Speech.speak(message.content, { language: 'fr-FR', onDone: () => setSpeaking(false), onStopped: () => setSpeaking(false), onError: () => setSpeaking(false) }); } else setSpeaking(false); }} /><IconButton name="share-outline" label="Partager la réponse" colors={colors} onPress={() => { void Share.share({ message: message.content }).catch(notifyError); }} /></> : null}
       {latest ? <IconButton name="refresh-outline" label="Régénérer" colors={colors} disabled={busy} onPress={() => onRetry(message.id)} /> : null}
     </View> : null}
   </View>;
@@ -55,7 +69,7 @@ const MessageRow = memo(function MessageRow({ message, colors, latest, busy, onR
 function Profile({ colors }: { colors: Colors }) {
   const runtime = useRuntime(); const [name, setName] = useState(''); const [saving, setSaving] = useState(false);
   return <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: colors.bg, padding: 30, justifyContent: 'center' }}>
-    <Logo size={76} /><Text style={{ color: colors.muted, fontSize: 10, letterSpacing: 3, marginTop: 35 }}>BIENVENUE CHEZ CKAI</Text>
+    <Entrance delay={80}><Logo size={76} /></Entrance><Text style={{ color: colors.muted, fontSize: 10, letterSpacing: 3, marginTop: 35 }}>BIENVENUE CHEZ CKAI</Text>
     <Text accessibilityRole="header" style={{ color: colors.ink, fontFamily: tokens.font.answer, fontSize: 38, lineHeight: 46, marginTop: 14 }}>Un espace pour{ '\n' }tes idées.</Text>
     <Text style={{ color: colors.muted, fontSize: 14, lineHeight: 24, marginTop: 18, marginBottom: 32 }}>Tes conversations restent sur cet appareil. Tes messages sont envoyés à Groq pour obtenir une réponse.</Text>
     <Text style={{ color: colors.ink, fontSize: 13, marginBottom: 10 }}>Comment t’appelles-tu ?</Text>
@@ -70,6 +84,9 @@ function Profile({ colors }: { colors: Colors }) {
 
 function ChatScreen({ colors }: { colors: Colors }) {
   const runtime = useRuntime(); const insets = useSafeAreaInsets(); const { height } = useWindowDimensions();
+  const reader = useDocumentReader();
+  const [attachments, setAttachments] = useState<Attachment[]>([]); const [attachOpen, setAttachOpen] = useState(false);
+  const [importing, setImporting] = useState(''); const [video, setVideo] = useState<Attachment | null>(null);
   const [draft, setDraft] = useState(''); const [drawer, setDrawer] = useState(false); const [search, setSearch] = useState('');
   const [modelsOpen, setModelsOpen] = useState(false); const [activityOpen, setActivityOpen] = useState(false);
   const [atBottom, setAtBottom] = useState(true); const [submitting, setSubmitting] = useState(false);
@@ -81,7 +98,11 @@ function ChatScreen({ colors }: { colors: Colors }) {
     void db().then(async connection => {
       await connection.execAsync('CREATE TABLE IF NOT EXISTS drafts (id TEXT PRIMARY KEY NOT NULL, content TEXT NOT NULL)');
       const row = await connection.getFirstAsync<{ content: string }>('SELECT content FROM drafts WHERE id=?', draftId);
-      if (!disposed) { setDraft(row?.content ?? ''); draftReady.current = true; }
+      if (!disposed) {
+        let content = row?.content ?? ''; let files: Attachment[] = [];
+        try { const value = JSON.parse(content); if (value && value.ckaiDraft === 2) { content = value.text; files = value.attachments ?? []; } } catch {}
+        setDraft(content); setAttachments(files); draftReady.current = true;
+      }
     }).catch(() => { if (!disposed) { setDraft(''); draftReady.current = true; } });
     following.current = true; setAtBottom(true);
     return () => { disposed = true; };
@@ -89,22 +110,46 @@ function ChatScreen({ colors }: { colors: Colors }) {
   useEffect(() => {
     if (!draftReady.current) return;
     const timer = setTimeout(() => {
-      void db().then(connection => connection.runAsync('INSERT OR REPLACE INTO drafts(id,content) VALUES (?,?)', draftId, draft)).catch(() => {});
+      void db().then(connection => connection.runAsync('INSERT OR REPLACE INTO drafts(id,content) VALUES (?,?)', draftId, JSON.stringify({ ckaiDraft: 2, text: draft, attachments }))).catch(() => {});
     }, 350);
     return () => clearTimeout(timer);
-  }, [draft, draftId]);
-  const busy = runtime.busy || submitting;
+  }, [draft, draftId, attachments]);
+  const busy = runtime.busy || submitting || !!importing;
+  const animate = runtime.preferences.animations !== 'reduced';
   async function send() {
     if (runtime.busy) { runtime.stop(); return; }
-    if (!draft.trim() || submitting) return;
+    if ((!draft.trim() && !attachments.length) || submitting || importing) return;
     setSubmitting(true); Keyboard.dismiss(); following.current = true; setAtBottom(true);
     const captured = draft;
     try {
-      if (await runtime.send(captured)) {
-        setDraft('');
+      if (await runtime.send(captured, attachments)) {
+        setDraft(''); setAttachments([]);
         await (await db()).runAsync('DELETE FROM drafts WHERE id IN (?,?)', draftId, runtime.current?.id ?? draftId);
       }
     } catch { notifyError(); } finally { setSubmitting(false); }
+  }
+  async function pick(kind: 'files' | 'photos' | 'camera' | 'video') {
+    if (busy) return; setAttachOpen(false);
+    if (attachments.length >= 3) { Alert.alert('Pièces jointes', 'Trois pièces jointes maximum par message.'); return; }
+    try {
+      let assets: { uri: string; name: string; mime?: string; size?: number; duration?: number }[] = [];
+      if (kind === 'files') {
+        const result = await DocumentPicker.getDocumentAsync({ multiple: true, copyToCacheDirectory: true });
+        if (result.canceled) return; assets = result.assets.map(asset => ({ uri: asset.uri, name: asset.name, mime: asset.mimeType, size: asset.size }));
+      } else {
+        if (kind === 'camera' && !(await ImagePicker.requestCameraPermissionsAsync()).granted) { Alert.alert('Caméra', 'Autorise l’accès à la caméra dans les réglages Android pour prendre une photo.'); return; }
+        const result = kind === 'camera' ? await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.85 }) : await ImagePicker.launchImageLibraryAsync({ mediaTypes: kind === 'video' ? ['videos'] : ['images'], allowsMultipleSelection: kind !== 'video', selectionLimit: 3 - attachments.length, quality: 0.85 });
+        if (result.canceled) return;
+        assets = result.assets.map(asset => ({ uri: asset.uri, name: asset.fileName || `import-${Date.now()}.${asset.type === 'video' ? 'mp4' : 'jpg'}`, mime: asset.mimeType || (asset.type === 'video' ? 'video/mp4' : 'image/jpeg'), size: asset.fileSize, duration: asset.duration ?? undefined }));
+      }
+      const added: Attachment[] = [];
+      for (const asset of assets.slice(0, 3 - attachments.length)) {
+        setImporting(asset.name);
+        try { added.push(await importAttachment(asset, reader)); } catch (error) { Alert.alert('Import impossible', error instanceof Error ? error.message : asset.name); }
+      }
+      setAttachments(current => [...current, ...added].slice(0, 3));
+    } catch { Alert.alert('Import', 'Le sélecteur n’a pas pu être ouvert. Réessaie.'); }
+    finally { setImporting(''); }
   }
   const lastMessageId = runtime.messages.at(-1)?.id;
   const currentActivity = runtime.activity.at(-1)?.text;
@@ -122,16 +167,16 @@ function ChatScreen({ colors }: { colors: Colors }) {
           keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 12, paddingBottom: 12 }}
           onScroll={event => { const { contentSize, contentOffset, layoutMeasurement } = event.nativeEvent; following.current = contentSize.height - contentOffset.y - layoutMeasurement.height < 100; setAtBottom(following.current); }} scrollEventThrottle={64}
           onContentSizeChange={() => { if (following.current) list.current?.scrollToEnd({ animated: false }); }}
-          renderItem={({ item }) => <MessageRow message={item} colors={colors} latest={item.id === lastMessageId} busy={busy} onRetry={id => { void runtime.retry(id); }} />}
+          renderItem={({ item }) => <MessageRow message={item} colors={colors} latest={item.id === lastMessageId} busy={busy} onRetry={id => { void runtime.retry(id); }} onPlay={setVideo} animate={animate} />}
           ListEmptyComponent={<View style={{ minHeight: Math.max(340, height - insets.top - insets.bottom - 265), justifyContent: 'center', paddingTop: 25, paddingBottom: 30 }}>
-            <View style={{ alignItems: 'center' }}><Orb /><Text style={{ color: colors.muted, fontSize: 9, letterSpacing: 2.5, marginBottom: 15 }}>UN PEU DE CLARTÉ, BEAUCOUP DE POSSIBLES</Text>
+            <Entrance reduced={!animate} style={{ alignItems: 'center' }}><AuroraOrb disabled={!animate} size={120} /><Text style={{ color: colors.muted, fontSize: 9, letterSpacing: 2.5, marginBottom: 15 }}>UN PEU DE CLARTÉ, BEAUCOUP DE POSSIBLES</Text>
               <Text accessibilityRole="header" style={{ fontSize: 33, lineHeight: 42, color: colors.ink, textAlign: 'center', fontFamily: tokens.font.answer }}>{greeting}, {runtime.preferences.name}.{ '\n' }On explore une idée ?</Text>
               <Text style={{ color: colors.muted, textAlign: 'center', fontSize: 13, lineHeight: 21, marginTop: 15, marginBottom: 28 }}>Une question, une intuition, un projet.{ '\n' }Fais de la place à ce qui t’inspire.</Text>
-            </View>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>{prompts.map(prompt => <Pressable key={prompt.title} accessibilityRole="button" onPress={() => { setDraft(prompt.prompt); input.current?.focus(); }}
+            </Entrance>
+            <Entrance reduced={!animate} delay={180}><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>{prompts.map(prompt => <Pressable key={prompt.title} accessibilityRole="button" onPress={() => { setDraft(prompt.prompt); input.current?.focus(); }}
               style={({ pressed }) => ({ width: '48%', minHeight: 100, borderWidth: 1, borderColor: colors.line, borderRadius: 17, padding: 15, backgroundColor: pressed ? colors.surface : 'transparent' })}>
               <Icon name={prompt.icon} color={colors.accent} size={18} /><Text style={{ color: colors.ink, fontSize: 12, fontWeight: '500', marginTop: 10 }}>{prompt.title}</Text><Text style={{ color: colors.muted, fontSize: 10, marginTop: 5, lineHeight: 15 }}>{prompt.detail}</Text>
-            </Pressable>)}</View>
+            </Pressable>)}</View></Entrance>
           </View>} />
         {!atBottom && runtime.messages.length ? <View style={{ position: 'absolute', bottom: 12, alignSelf: 'center', backgroundColor: colors.surface, borderRadius: 24, borderWidth: 1, borderColor: colors.line }}>
           <IconButton name="arrow-down-outline" label="Dernier message" colors={colors} onPress={() => { following.current = true; list.current?.scrollToEnd({ animated: true }); }} />
@@ -139,26 +184,41 @@ function ChatScreen({ colors }: { colors: Colors }) {
       </View>
       {runtime.activity.length ? <Pressable accessibilityRole="button" accessibilityLabel="Voir les étapes de la requête" onPress={() => setActivityOpen(true)} style={{ minHeight: 36, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 25, gap: 9 }}>
         {runtime.busy ? <ActivityIndicator size="small" color={colors.accent} /> : <Icon name="checkmark-circle-outline" color={colors.muted} size={15} />}
-        <Text accessibilityLiveRegion="polite" numberOfLines={1} style={{ flex: 1, color: colors.muted, fontSize: 11 }}>{runtime.busy ? currentActivity : 'Étapes de la requête'}</Text><Icon name="chevron-forward" color={colors.muted} size={13} />
+        <Shimmer text={runtime.busy ? currentActivity || 'Préparation…' : `Terminé en ${Math.round((runtime.messages.at(-1)?.rich?.durationMs ?? 0) / 1000)} s`} colors={colors} active={runtime.busy && animate} /><Icon name="chevron-forward" color={colors.muted} size={13} />
       </Pressable> : null}
       <View style={{ paddingHorizontal: 12, paddingTop: 7, paddingBottom: Math.max(insets.bottom, 12) }}>
-        <LinearGradient colors={busy ? tokens.gradient : [colors.line, colors.line]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 1, borderRadius: tokens.radius.composer }}>
+        {attachments.length ? <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 10 }}>{attachments.map(item => <View key={item.id} style={{ width: 108, borderRadius: 16, overflow: 'hidden', backgroundColor: colors.raised, borderWidth: 1, borderColor: colors.line }}>
+          {item.preview ? <Image source={item.preview} contentFit="cover" style={{ height: 64, width: 108 }} /> : <View style={{ height: 64, alignItems: 'center', justifyContent: 'center' }}><Icon name="document-text-outline" color={colors.accent} size={27} /></View>}
+          <Text numberOfLines={1} style={{ padding: 8, color: colors.ink, fontSize: 10 }}>{item.name}</Text><View style={{ position: 'absolute', top: 0, right: 0, backgroundColor: '#0008', borderRadius: 20 }}><IconButton name="close-outline" label={`Retirer ${item.name}`} colors={colors} disabled={busy} onPress={() => setAttachments(items => items.filter(file => file.id !== item.id))} /></View>
+        </View>)}</ScrollView> : null}
+        {importing ? <View style={{ flexDirection: 'row', gap: 10, padding: 12, alignItems: 'center' }}><ActivityIndicator color={colors.accent} /><Text style={{ color: colors.muted, flex: 1, fontSize: 12 }}>Lecture de {importing}…</Text></View> : null}
+        <GlowFrame active={runtime.busy} reduced={!animate} colors={colors}>
           <View style={{ backgroundColor: colors.surface, borderRadius: tokens.radius.composer - 1, paddingHorizontal: 15, paddingTop: 9, paddingBottom: 8 }}>
             <TextInput ref={input} value={draft} onChangeText={setDraft} multiline maxLength={9000} placeholder="Écrire à CKai…" placeholderTextColor={colors.muted} accessibilityLabel="Message à CKai"
               style={{ color: colors.ink, fontSize: 16, lineHeight: 23, minHeight: 49, maxHeight: 160, padding: 7, textAlignVertical: 'top' }} />
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <IconButton name="add-outline" label="Joindre une photo, une vidéo ou un fichier" colors={colors} disabled={busy} onPress={() => setAttachOpen(true)} />
               <Pressable disabled={busy} onPress={() => setModelsOpen(true)} accessibilityRole="button" accessibilityLabel="Choisir le modèle" style={{ minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 7 }}>
-                <Icon name="sparkles-outline" color={colors.accent} size={15} /><Text style={{ color: colors.muted, fontSize: 11 }}>{levels.find(level => level.id === runtime.preferences.level)?.title} · GPT-OSS</Text><Icon name="chevron-down" color={colors.muted} size={11} />
+                <Icon name="sparkles-outline" color={colors.accent} size={15} /><Text style={{ color: colors.muted, fontSize: 11 }}>{levels.find(level => level.id === runtime.preferences.level)?.title}</Text><Icon name="chevron-down" color={colors.muted} size={11} />
               </Pressable>
-              <Pressable accessibilityRole="button" accessibilityLabel={runtime.busy ? 'Arrêter la réponse' : 'Envoyer'} disabled={!runtime.busy && (!draft.trim() || submitting)} onPress={() => { void send(); }} style={({ pressed }) => ({ width: 48, height: 48, justifyContent: 'center', alignItems: 'center', opacity: pressed ? 0.6 : !runtime.busy && !draft.trim() ? 0.3 : 1 })}>
+              <IconButton name={runtime.preferences.web === 'off' ? 'globe-outline' : 'globe'} label={`Recherche web : ${runtime.preferences.web === 'off' ? 'désactivée' : runtime.preferences.web === 'on' ? 'forcée' : 'automatique'}`} colors={colors} disabled={busy} onPress={() => { const web = runtime.preferences.web === 'auto' ? 'on' : runtime.preferences.web === 'on' ? 'off' : 'auto'; void runtime.setPreferences({ web }).catch(notifyError); }} />
+              <Pressable accessibilityRole="button" accessibilityLabel={runtime.busy ? 'Arrêter la réponse' : 'Envoyer'} disabled={!runtime.busy && (!draft.trim() && !attachments.length || submitting || !!importing)} onPress={() => { void send(); }} style={({ pressed }) => ({ width: 48, height: 48, justifyContent: 'center', alignItems: 'center', opacity: pressed ? 0.6 : !runtime.busy && !draft.trim() && !attachments.length ? 0.3 : 1 })}>
                 <View style={{ backgroundColor: colors.ink, width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' }}><Icon name={runtime.busy ? 'stop' : 'arrow-up'} color={colors.bg} size={runtime.busy ? 14 : 21} /></View>
               </Pressable>
             </View>
           </View>
-        </LinearGradient>
-        <Text style={{ color: colors.muted, fontSize: 9, textAlign: 'center', marginTop: 9 }}>Groq · CKai peut se tromper. Garde ton esprit critique.</Text>
+        </GlowFrame>
+        <Text style={{ color: colors.muted, fontSize: 9, textAlign: 'center', marginTop: 9 }}>{`Web ${runtime.preferences.web === 'on' ? 'activé' : runtime.preferences.web === 'off' ? 'désactivé' : 'auto'} · ${attachments.length ? `${attachments.length} pièce(s) jointe(s)` : 'CKai peut se tromper.'}`}</Text>
       </View>
     </KeyboardAvoidingView>
+    <VideoOverlay item={video} colors={colors} close={() => setVideo(null)} />
+    <Sheet visible={attachOpen} title="Donne du contexte à CKai" colors={colors} onClose={() => setAttachOpen(false)}>
+      <Choice title="Photos" subtitle="Analyse visuelle et lecture du texte" colors={colors} onPress={() => { void pick('photos'); }} />
+      <Choice title="Prendre une photo" subtitle="Document, objet, idée sur papier…" colors={colors} onPress={() => { void pick('camera'); }} />
+      <Choice title="Fichiers" subtitle="PDF texte, DOCX, tableurs, CSV et code · 12 Mo" colors={colors} onPress={() => { void pick('files'); }} />
+      <Choice title="Vidéo" subtitle="Lecture native et analyse de 3 images · 80 Mo" colors={colors} onPress={() => { void pick('video'); }} />
+      <Text style={{ color: colors.muted, fontSize: 12, lineHeight: 20, marginVertical: 14 }}>Trois pièces jointes par message. L’analyse visuelle utilise le modèle Vision configuré dans les réglages. Les documents scannés sans texte nécessitent une photo de la page.</Text>
+    </Sheet>
     <Sheet visible={modelsOpen} title="À chaque idée, son rythme." colors={colors} onClose={() => setModelsOpen(false)}>
       {levels.map(level => <Choice key={level.id} title={level.title} subtitle={level.description} selected={runtime.preferences.level === level.id} colors={colors} onPress={() => { void runtime.setPreferences({ level: level.id }).catch(notifyError); }} />)}
       <Text style={{ color: colors.muted, fontSize: 11, marginTop: 17, marginBottom: 12 }}>RÉFLEXION</Text>
@@ -166,7 +226,7 @@ function ChatScreen({ colors }: { colors: Colors }) {
       <Text style={{ color: colors.muted, fontSize: 11, lineHeight: 19, marginVertical: 16 }}>Les quotas gratuits dépendent du compte Groq. Aucun changement automatique vers un fournisseur payant.</Text>
     </Sheet>
     <Sheet visible={activityOpen} title="La requête, étape par étape." colors={colors} onClose={() => setActivityOpen(false)}>
-      {runtime.activity.map((item, index) => <View key={index} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 17 }}><Icon name={item.completed ? 'checkmark-circle' : 'ellipse-outline'} color={item.completed ? colors.muted : colors.accent} size={18} /><Text style={{ color: colors.ink, fontSize: 14, flex: 1 }}>{item.text}</Text></View>)}
+      {runtime.activity.map((item, index) => <View key={index} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 17 }}><Icon name={item.completed ? 'checkmark-circle' : 'ellipse-outline'} color={item.completed ? colors.muted : colors.accent} size={18} /><Text style={{ color: colors.ink, fontSize: 14, flex: 1 }}>{item.text}</Text><Text style={{ color: colors.muted, fontSize: 11 }}>{item.endedAt ? `${((item.endedAt - item.startedAt) / 1000).toFixed(1)} s` : '…'}</Text></View>)}
       <Text style={{ color: colors.muted, fontSize: 12, lineHeight: 20, marginVertical: 15 }}>Ces étapes montrent les opérations réelles de l’application, pas les pensées internes du modèle.</Text>
     </Sheet>
     <Modal visible={drawer} transparent animationType="fade" onRequestClose={() => setDrawer(false)}>
@@ -174,7 +234,7 @@ function ChatScreen({ colors }: { colors: Colors }) {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 11, paddingHorizontal: 23, marginBottom: 24 }}><Logo size={33} /><Text style={{ color: colors.ink, fontSize: 22, flex: 1 }}>CKai</Text><IconButton name="close-outline" label="Fermer l’historique" colors={colors} onPress={() => setDrawer(false)} /></View>
         <View style={{ paddingHorizontal: 20 }}><PrimaryButton title="Nouvelle conversation" colors={colors} disabled={busy} onPress={() => { setDrawer(false); void runtime.openChat(null); }} />
           <TextInput value={search} onChangeText={setSearch} placeholder="Rechercher une conversation" placeholderTextColor={colors.muted} accessibilityLabel="Rechercher une conversation" style={{ color: colors.ink, backgroundColor: colors.raised, padding: 14, borderRadius: 13, marginTop: 16, fontSize: 13 }} />
-          <Text style={{ color: colors.muted, fontSize: 10, letterSpacing: 2, marginVertical: 20 }}>TES CONVERSATIONS</Text>
+          <Pressable onPress={() => { setDrawer(false); router.push('/memory'); }} accessibilityRole="button" style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 52, marginTop: 8 }}><Icon name="bulb-outline" color={colors.accent} /><Text style={{ color: colors.ink }}>Mémoire</Text></Pressable><Text style={{ color: colors.muted, fontSize: 10, letterSpacing: 2, marginVertical: 20 }}>TES CONVERSATIONS</Text>
         </View>
         <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 12 }}>
           {runtime.chats.filter(chat => chat.title.toLocaleLowerCase('fr').includes(search.toLocaleLowerCase('fr'))).map(chat => <Pressable key={chat.id} disabled={busy} accessibilityRole="button"

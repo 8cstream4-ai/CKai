@@ -3,6 +3,7 @@ import { Stack, type ErrorBoundaryProps } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Text, View } from 'react-native';
+import { DocumentReaderProvider } from '../src/features/documents';
 import { RuntimeProvider } from '../src/runtime';
 import { PrimaryButton } from '../src/ui';
 import { palette } from '../src/theme';
@@ -15,7 +16,7 @@ export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
   </View>;
 }
 export default function Layout() {
-  return <GestureHandlerRootView style={{ flex: 1 }}><SafeAreaProvider><RuntimeProvider>
+  return <GestureHandlerRootView style={{ flex: 1 }}><SafeAreaProvider><DocumentReaderProvider><RuntimeProvider>
     <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }} />
-  </RuntimeProvider></SafeAreaProvider></GestureHandlerRootView>;
+  </RuntimeProvider></DocumentReaderProvider></SafeAreaProvider></GestureHandlerRootView>;
 }

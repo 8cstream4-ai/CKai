@@ -1,9 +1,11 @@
 {
   "name": "ckai-mobile",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "main": "expo-router/entry",
-  "engines": { "node": ">=24" },
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "setup": "node scripts/setup.mjs",
     "provision": "node --env-file-if-exists=../.env.local scripts/provision.mjs",
@@ -18,10 +20,14 @@
   "dependencies": {
     "expo": "~58.0.0",
     "react": "19.3.0",
-    "react-native": "0.88.0"
+    "react-native": "0.88.0",
+    "mammoth": "^1.11.0",
+    "pdfjs-dist": "^5.4.149",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
     "typescript": "~6.0.3",
-    "@types/react": "^19.2.0"
+    "@types/react": "^19.2.0",
+    "esbuild": "^0.25.10"
   }
 }

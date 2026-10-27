@@ -15,6 +15,9 @@ for (const name of [
   'expo-clipboard', 'expo-haptics', 'expo-linear-gradient', 'expo-status-bar',
   'expo-linking', 'expo-constants', 'expo-splash-screen', 'expo-font',
   'react-native-safe-area-context', 'react-native-screens', 'react-native-gesture-handler',
+  'expo-document-picker', 'expo-image-picker', 'expo-image-manipulator', 'expo-image', 'expo-video',
+  'expo-file-system', 'expo-sharing', 'expo-print', 'expo-web-browser', 'expo-speech', 'expo-blur',
+  'react-native-webview', '@shopify/react-native-skia',
   'react-native-reanimated', 'react-native-worklets', '@expo/vector-icons', '@shopify/flash-list',
 ]) {
   if (!bundled[name]) throw new Error(`Version Expo manquante : ${name}`);
@@ -22,6 +25,8 @@ for (const name of [
 }
 await writeFile(resolve(root, 'package.json'), JSON.stringify(manifest, null, 2) + '\n');
 run(['install', '--fetch-retries=1', '--fetch-timeout=30000']);
+const bundle = spawnSync(process.execPath, ['scripts/bundle-reader.mjs'], { cwd: root, stdio: 'inherit' });
+if (bundle.status !== 0) process.exit(bundle.status ?? 1);
 if (process.env.CKAI_SKIP_PROVISION !== '1') {
   const result = spawnSync(process.execPath, ['--env-file-if-exists=../.env.local', 'scripts/provision.mjs'], { cwd: root, stdio: 'inherit' });
   process.exitCode = result.status ?? 1;

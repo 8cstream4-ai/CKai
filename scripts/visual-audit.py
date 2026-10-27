@@ -21,13 +21,15 @@ def record_intro():
 record_intro()
 adb('root'); adb('wait-for-device'); time.sleep(1)
 assert adb('shell','id','-u').strip()==b'0', 'Root required for synthetic fixture injection on a fresh emulator.'
-path='/data/user/0/app.ckai.privateassistant/databases/ckai.db'
+path=adb('shell','find','/data/user/0/app.ckai.privateassistant','-name','ckai.db').decode().strip().splitlines()[0]
 adb('shell','am','force-stop','app.ckai.privateassistant')
 local=pathlib.Path('/tmp/ckai-audit.db')
-local.write_bytes(adb('exec-out','cat',path))
-for suffix in ['-wal','-shm']:
+content=adb('exec-out','cat',path)
+assert content.startswith(b'SQLite format 3'), 'Expected the application SQLite database.'
+local.write_bytes(content)
+for suffix in ['-wal']:
     result=subprocess.run(['adb','exec-out','cat',path+suffix],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-    if result.returncode==0: pathlib.Path(str(local)+suffix).write_bytes(result.stdout)
+    if result.returncode==0 and result.stdout[:4] in [bytes.fromhex('377f0682'),bytes.fromhex('377f0683')]: pathlib.Path(str(local)+suffix).write_bytes(result.stdout)
 connection=sqlite3.connect(local)
 row=connection.execute('SELECT value FROM settings WHERE id=1').fetchone(); settings=json.loads(row[0])
 connection.execute('DELETE FROM messages'); connection.execute('DELETE FROM conversations')
@@ -45,7 +47,7 @@ def apply(theme):
     adb('shell','cp','/data/local/tmp/ckai-audit.db',path)
     adb('shell','rm','-f',path+'-wal',path+'-shm')
     adb('shell','am','start','-W','-n','app.ckai.privateassistant/.MainActivity')
-    wait('CKaiTest'); tap('Historique'); tap('Audit Markdown FR'); wait('passage')
+    wait('CKaiTest'); tap('Historique'); tap('Audit Markdown FR'); wait('Audit Markdown FR')
 
 for width,height,theme,scale in [(720,1600,'dark','1.0'),(786,1704,'light','1.0'),(860,1864,'amoled','1.3')]:
     adb('shell','wm','size',f'{width}x{height}'); adb('shell','wm','density','320')

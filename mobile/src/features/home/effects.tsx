@@ -27,7 +27,7 @@ export const LivingOrb = memo(function LivingOrb({ size = 148, typing = 0, disab
   const { animated } = useHomeMotion(disabled); const clock = useSharedValue(0); const breath = useSharedValue(1); const pulse = useSharedValue(0);
   useEffect(() => { if (animated && !miniature) breath.value = withRepeat(withSequence(withTiming(1.04,{duration:2000,easing:Easing.inOut(Easing.sin)}),withTiming(1,{duration:2000,easing:Easing.inOut(Easing.sin)})),-1); else { cancelAnimation(breath); breath.value=1; } return () => cancelAnimation(breath); }, [animated,miniature,breath]);
   useEffect(() => { if (typing && animated) pulse.value=withSequence(withTiming(1,{duration:90}),withTiming(0,{duration:340})); }, [typing,animated,pulse]);
-  const frame=useFrameCallback(info => { clock.value=(info.timestamp ?? 0)/1000; });
+  const frame=useFrameCallback(info => { clock.value+=Math.min(info.timeSincePreviousFrame ?? 16.667,50)/1000; });
   useEffect(() => { frame.setActive(animated && !miniature); return () => frame.setActive(false); }, [animated,miniature,frame]);
   const uniforms=useDerivedValue(()=>({resolution:[size,size],time:clock.value,energy:pulse.value}));
   const viewStyle=useAnimatedStyle(()=>({transform:[{scale:breath.value + pulse.value*0.022}]}));
@@ -47,7 +47,7 @@ function Star({x,y,index,clock,width,height,animated}: {x:number;y:number;index:
 }
 export const HomeAtmosphere = memo(function HomeAtmosphere({ disabled=false, light=false }: { disabled?:boolean; light?:boolean }) {
   const {width,height}=useWindowDimensions(); const {animated,lowPower,reduced}=useHomeMotion(disabled); const clock=useSharedValue(0);const last=useSharedValue(0);
-  const frame=useFrameCallback(info=>{if(info.timestamp-last.value>=1000/30){last.value=info.timestamp;clock.value=info.timestamp/1000;}});
+  const frame=useFrameCallback(info=>{if(info.timestamp-last.value>=1000/30){clock.value+=Math.min(info.timestamp-last.value,66)/1000;last.value=info.timestamp;}});
   useEffect(()=>{frame.setActive(animated);return()=>frame.setActive(false);},[animated,frame]);
   const resolution=useMemo(()=>[width/4,height/4],[width,height]);const uniforms=useDerivedValue(()=>({resolution,time:clock.value,light:light?1:0}));
   if (lowPower) return null;

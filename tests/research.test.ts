@@ -43,3 +43,10 @@ test('Markdown incrémental : même AST que le parseur complet à chaque caract�
   for (let i = 0; i <= text.length; i++) assert.deepEqual(parser.update(text.slice(0, i)), parseMarkdown(text.slice(0, i)), `position ${i}`);
   assert.deepEqual(parser.update('Autre réponse'), parseMarkdown('Autre réponse'));
 });
+
+test('Markdown : les images sont intercalées avec le texte et ne sont jamais évaluées en HTML', () => {
+  assert.deepEqual(parseMarkdown('Avant ![Montagne](https://example.org/image.jpg) après'), [
+    { type: 'paragraph', text: 'Avant ' }, { type: 'image', alt: 'Montagne', url: 'https://example.org/image.jpg' }, { type: 'paragraph', text: ' après' },
+  ]);
+  assert.equal(parseMarkdown('![unsafe](javascript:alert(1))')[0]?.type, 'paragraph');
+});

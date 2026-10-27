@@ -95,3 +95,43 @@ jobs:
           echo '### APK CKai genere' >> "$GITHUB_STEP_SUMMARY"
           echo 'Telecharger l’artefact CKai-Android depuis cette execution, extraire le ZIP puis installer CKai-test.apk sur Android.' >> "$GITHUB_STEP_SUMMARY"
           echo 'Compilation terminee. Le test Groq est execute uniquement si le secret GROQ_API_KEY est configure. Le lancement sur un vrai telephone reste a verifier.' >> "$GITHUB_STEP_SUMMARY"
+
+  smoke:
+    name: Test du lancement Android
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/download-artifact@v4
+        with:
+          name: CKai-Android-${{ github.run_number }}
+          path: artifacts
+      - name: Activer KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Installer et ouvrir le vrai APK
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
+          script: python mobile/scripts/android-smoke.py
+      - name: Conserver les captures et journaux de test
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CKai-verification-Android-${{ github.run_number }}
+          path: artifacts/android-smoke
+          retention-days: 3

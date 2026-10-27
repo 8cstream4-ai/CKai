@@ -32,6 +32,7 @@ export const Markdown = memo(function Markdown({ content, colors, active = false
   const parser = useRef(new MarkdownStreamParser()); const blocks = parser.current.update(content);
   return <View style={{ gap: 15 }}>{blocks.map((block, index) => {
     const animate = active && index === blocks.length - 1;
+    if (block.type === 'image') return <ImageCard key={index} uri={block.url} title={block.alt || 'Image'} colors={colors} />;
     if (block.type === 'paragraph') {
       const image = /^!\[([^\]]*)\]\((https:\/\/[^\s)]+)\)$/.exec(block.text.trim());
       if (image) return <ImageCard key={index} uri={image[2]!} title={image[1] || 'Image'} colors={colors} />;

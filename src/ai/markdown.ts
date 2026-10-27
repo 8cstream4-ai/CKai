@@ -1,4 +1,5 @@
 export type MarkdownBlock =
+  | { type: 'image'; url: string; alt: string }
   | { type: 'paragraph' | 'quote'; text: string }
   | { type: 'heading'; text: string; level: number }
   | { type: 'code'; text: string; language: string }
@@ -39,7 +40,12 @@ export function parseMarkdown(source: string): MarkdownBlock[] {
     }
     const content = [line]; index++;
     while (index < lines.length && lines[index]!.trim() && !special(lines[index]!)) content.push(lines[index++]!);
-    blocks.push({ type: 'paragraph', text: content.join('\n') });
+    const paragraph = content.join('\n'); let start = 0;
+    for (const image of paragraph.matchAll(/!\[([^\]\n]*)\]\((https:\/\/[^\s)]+)\)/g)) {
+      const before = paragraph.slice(start, image.index); if (before.trim()) blocks.push({ type: 'paragraph', text: before });
+      blocks.push({ type: 'image', url: image[2]!, alt: image[1]! }); start = image.index + image[0].length;
+    }
+    const after = paragraph.slice(start); if (after.trim()) blocks.push({ type: 'paragraph', text: after });
   }
   return blocks;
 }

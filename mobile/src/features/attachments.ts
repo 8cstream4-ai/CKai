@@ -19,7 +19,7 @@ async function picture(source: Parameters<typeof ImageManipulator.manipulate>[0]
   finally { image.release(); context.release(); }
 }
 export async function importAttachment(asset: { uri: string; name: string; mime?: string; size?: number; duration?: number }, reader: (type: string, data: string) => Promise<{ text: string; truncated: boolean }>): Promise<Attachment> {
-  const original = new File(asset.uri); const size = asset.size ?? original.size;
+  const original = new File(asset.uri); const size = Math.max(asset.size ?? 0, original.size);
   const ext = asset.name.split('.').at(-1)?.toLowerCase() ?? ''; const mime = asset.mime ?? '';
   const kind = mime.startsWith('image/') || ['jpg','jpeg','png','webp','heic','avif'].includes(ext) ? 'image' : mime.startsWith('video/') || ['mp4','mov','webm','m4v'].includes(ext) ? 'video' : 'document';
   if (size > (kind === 'video' ? 80 : kind === 'image' ? 25 : 12) * 1024 * 1024) throw new Error(`${asset.name} dépasse la limite de ${kind === 'video' ? 80 : kind === 'image' ? 25 : 12} Mo.`);

@@ -4,7 +4,7 @@ Assistant IA Android en français : interface sombre, claire et AMOLED, historiq
 
 ## État réel
 
-Le moteur IA dispose de 34 tests automatisés. La compilation Android est lancée par GitHub Actions ; la validation sur un téléphone reste à effectuer. La version 0.3 ajoute la recherche web, les sources, les imports PDF/DOCX/tableurs/images/vidéos, les animations, la météo et la mémoire. Les limites et vérifications manuelles sont détaillées dans `docs/validation-v03.md`. Le grand cahier des charges reste partiellement implémenté.
+Le moteur IA dispose de 35 tests automatisés. La compilation Android est lancée par GitHub Actions ; la validation sur un téléphone reste à effectuer. La version 0.3 ajoute la recherche web, les sources, les imports PDF/DOCX/tableurs/images/vidéos, les animations, la météo et la mémoire. Les limites et vérifications manuelles sont détaillées dans `docs/validation-v03.md`. Le grand cahier des charges reste partiellement implémenté.
 
 ## Télécharger le test Android
 

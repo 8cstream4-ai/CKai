@@ -1,0 +1,89 @@
+name: CKai - APK Android
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'mobile/**'
+      - 'src/**'
+      - 'scripts/verify-groq.mjs'
+      - 'tests/**'
+      - '.github/workflows/android-apk.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ckai-android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+      HAS_GROQ: ${{ secrets.GROQ_API_KEY != '' }}
+    steps:
+      - name: Recuperer le projet
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Preparer Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Preparer Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Preparer Android
+        uses: android-actions/setup-android@v4
+
+      - name: Tester le moteur IA
+        run: npm test
+
+      - name: Verifier les regles et la syntaxe des scripts
+        run: npm run lint
+
+      - name: Installer les dependances natives compatibles Expo
+        working-directory: mobile
+        env:
+          CKAI_SKIP_PROVISION: '1'
+        run: npm run setup
+
+      - name: Verifier la vraie reponse Groq
+        if: env.HAS_GROQ == 'true'
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: npm run verify:groq
+
+      - name: Preparer la configuration du build
+        working-directory: mobile
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: npm run provision
+
+      - name: Verifier les types et compiler un APK autonome
+        working-directory: mobile
+        run: npm run apk
+
+      - name: Conserver l'APK de test
+        uses: actions/upload-artifact@v4
+        with:
+          name: CKai-Android-${{ github.run_number }}
+          path: artifacts/CKai-test.apk
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Indiquer le resultat
+        run: |
+          echo '### APK CKai genere' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Telecharger l’artefact CKai-Android depuis cette execution, extraire le ZIP puis installer CKai-test.apk sur Android.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Compilation terminee. Le test Groq est execute uniquement si le secret GROQ_API_KEY est configure. Le lancement sur un vrai telephone reste a verifier.' >> "$GITHUB_STEP_SUMMARY"

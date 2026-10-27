@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "CKai",
+    "slug": "ckai-private",
+    "version": "0.2.0",
+    "scheme": "ckai",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "icon": "./assets/icon.png",
+    "newArchEnabled": true,
+    "android": {
+      "package": "app.ckai.privateassistant",
+      "versionCode": 2,
+      "softwareKeyboardLayoutMode": "resize",
+      "allowBackup": false
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-sqlite",
+      ["expo-splash-screen", {"image": "./assets/icon.png", "imageWidth": 96, "backgroundColor": "#151515"}]
+    ]
+  }
+}

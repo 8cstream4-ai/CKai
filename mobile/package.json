@@ -1,0 +1,27 @@
+{
+  "name": "ckai-mobile",
+  "version": "0.2.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "provision": "node --env-file-if-exists=../.env.local scripts/provision.mjs",
+    "start": "expo start --dev-client",
+    "typecheck": "tsc --noEmit",
+    "check": "expo install --check",
+    "prebuild": "expo prebuild --platform android",
+    "android": "expo run:android",
+    "apk": "node scripts/apk.mjs",
+    "eas-build-post-install": "node scripts/provision.mjs"
+  },
+  "dependencies": {
+    "expo": "~58.0.0",
+    "react": "19.3.0",
+    "react-native": "0.88.0"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "@types/react": "^19.2.0"
+  }
+}

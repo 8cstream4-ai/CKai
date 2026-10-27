@@ -1,0 +1,21 @@
+{
+  "name": "ckai-ai-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "test": "node --test --test-isolation=none tests/*.test.ts",
+    "lint": "node scripts/check.mjs",
+    "typecheck": "tsc --noEmit",
+    "chat": "node --env-file-if-exists=.env.local scripts/chat.ts",
+    "models": "node --env-file-if-exists=.env.local scripts/chat.ts --models",
+    "verify:groq": "node --env-file-if-exists=.env.local scripts/verify-groq.mjs",
+    "preview": "node --env-file-if-exists=.env.local scripts/preview.mjs",
+    "build:preview": "node scripts/build-preview.mjs",
+    "build:private-test": "node --env-file-if-exists=.env.local scripts/build-preview.mjs --private-test"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3"
+  }
+}

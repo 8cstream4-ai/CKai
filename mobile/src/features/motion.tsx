@@ -1,4 +1,4 @@
-import React, { memo, useEffect } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import { Text, View, type TextStyle } from 'react-native';
 import Animated, { cancelAnimation, Easing, FadeInDown, interpolateColor, useAnimatedStyle, useDerivedValue, useReducedMotion, useSharedValue, withDelay, withRepeat, withTiming } from 'react-native-reanimated';
 import { BlurMask, Canvas, Circle, Group, LinearGradient as SkiaGradient, vec } from '@shopify/react-native-skia';
@@ -40,11 +40,12 @@ export function AuroraOrb({ active = false, disabled = false, size = 100 }: { ac
   </Canvas>;
 }
 export function GlowFrame({ children, active, reduced: preference, colors }: { children: React.ReactNode; active: boolean; reduced: boolean; colors: Colors }) {
-  const reduced = useReducedMotion(); const rotation = useSharedValue(0);
+  const reduced = useReducedMotion(); const rotation = useSharedValue(0); const [dimensions,setDimensions]=useState({width:400,height:120});
+  const diameter=Math.ceil(Math.hypot(dimensions.width,dimensions.height))+12;
   useEffect(() => { if (active && !reduced && !preference) rotation.value = withRepeat(withTiming(360, { duration: 6500, easing: Easing.linear }), -1); else cancelAnimation(rotation); return () => cancelAnimation(rotation); }, [active, reduced, preference, rotation]);
   const style = useAnimatedStyle(() => ({ transform: [{ rotate: `${rotation.value}deg` }] }));
-  return <View style={{ padding: active ? 1.5 : 1, borderRadius: tokens.radius.composer, overflow: 'hidden', backgroundColor: colors.line }}>
-    {active ? <Animated.View pointerEvents="none" style={[{ position: 'absolute', width: 1000, height: 1000, left: '50%', top: '50%', marginLeft: -500, marginTop: -500 }, style]}><LinearGradient colors={tokens.gradient} style={{ flex: 1 }} /></Animated.View> : null}
+  return <View onLayout={event=>{const {width,height}=event.nativeEvent.layout;if(Math.abs(width-dimensions.width)>1||Math.abs(height-dimensions.height)>1)setDimensions({width,height});}} style={{ padding: 1.5, borderRadius: tokens.radius.composer, overflow: 'hidden', backgroundColor: colors.line }}>
+    {active ? <Animated.View pointerEvents="none" style={[{ position: 'absolute', width: diameter, height: diameter, left: '50%', top: '50%', marginLeft: -diameter/2, marginTop: -diameter/2 }, style]}><LinearGradient colors={tokens.gradient} style={{ flex: 1 }} /></Animated.View> : null}
     {children}
   </View>;
 }

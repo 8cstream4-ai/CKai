@@ -11,11 +11,23 @@ def shot(name): (out / name).write_bytes(adb('exec-out','screencap','-p'))
 
 def record_intro():
     adb('shell','am','force-stop','app.ckai.privateassistant')
-    recording = subprocess.Popen(['adb','shell','screenrecord','--time-limit','8','/sdcard/ckai-intro.mp4'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+    adb('shell','dumpsys','gfxinfo','app.ckai.privateassistant','reset')
+    recording = subprocess.Popen(['adb','shell','screenrecord','--time-limit','18','/sdcard/ckai-intro.mp4'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
     time.sleep(0.5)
     adb('shell','am','start','-W','-n','app.ckai.privateassistant/.MainActivity')
     wait('CKaiTest')
-    recording.wait(timeout=15)
+    shot('home-default.png')
+    try:
+        node=wait('Une nouvelle idée'); bounds=list(map(int,__import__('re').findall(r'\d+',node.attrib['bounds'])))
+        x,y=str((bounds[0]+bounds[2])//2),str((bounds[1]+bounds[3])//2)
+        press=subprocess.Popen(['adb','shell','input','swipe',x,y,x,y,'700'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+        time.sleep(.2);shot('home-card-pressed.png');press.wait(timeout=3)
+        tap('Message à CKai');adb('shell','input','text','%sBonjour')
+        shot('home-composer-focused.png');adb('shell','input','keyevent','4')
+    except Exception as error:
+        print('Additional interaction capture:',type(error).__name__)
+    recording.wait(timeout=25)
+    (out/'gfxinfo.txt').write_bytes(adb('shell','dumpsys','gfxinfo','app.ckai.privateassistant','framestats'))
     (out/'intro.mp4').write_bytes(adb('exec-out','cat','/sdcard/ckai-intro.mp4'))
 
 record_intro()
@@ -47,13 +59,14 @@ def apply(theme):
     adb('shell','cp','/data/local/tmp/ckai-audit.db',path)
     adb('shell','rm','-f',path+'-wal',path+'-shm')
     adb('shell','am','start','-W','-n','app.ckai.privateassistant/.MainActivity')
-    wait('CKaiTest'); tap('Historique'); tap('Audit Markdown FR'); wait('Audit Markdown FR')
+    wait('CKaiTest')
 
 for width,height,theme,scale in [(720,1600,'dark','1.0'),(786,1704,'light','1.0'),(860,1864,'amoled','1.3')]:
     adb('shell','wm','size',f'{width}x{height}'); adb('shell','wm','density','320')
     adb('shell','settings','put','system','font_scale',scale)
-    apply(theme); shot(f'chat-{width//2}dp-{theme}-font{scale}.png')
-adb('shell','settings','put','system','accelerometer_rotation','0'); adb('shell','settings','put','system','user_rotation','1'); time.sleep(2); shot('chat-landscape.png')
+    apply(theme); shot(f'home-{width//2}dp-{theme}-font{scale}.png')
+    tap('Historique');tap('Audit Markdown FR');wait('Audit Markdown FR');shot(f'chat-{width//2}dp-{theme}-font{scale}.png')
+adb('shell','settings','put','system','accelerometer_rotation','0'); adb('shell','settings','put','system','user_rotation','1'); time.sleep(2);shot('chat-landscape.png');tap('Nouvelle conversation');wait('CKaiTest');shot('home-landscape.png')
 adb('shell','settings','put','system','user_rotation','0')
 connection.close()
 (out/'evidence.json').write_text(json.dumps({'phase':phase,'synthetic':True,'sizesDp':[360,393,430],'themes':['dark','light','amoled'],'fontScales':[1,1.3],'physicalPhone':'not attached','captureUnix':time.time()},indent=2))

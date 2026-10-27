@@ -26,3 +26,9 @@ Les quotas du PDF sont indicatifs. Pollinations exige actuellement une clé pour
 ## Phase B — pipeline Markdown
 
 Remend 1.4 (Apache-2.0) répare les délimiteurs ; Unified/Remark Parse/GFM/Math (MIT) produisent un AST rendu avec des composants natifs. Évaluation : Streamdown vise React DOM ; Remend est indépendant du DOM et convient au transport natif. Les parseurs natifs plus récents sont écartés au profit de ce pipeline stable et testable. Cinquante fixtures françaises couvrent les styles, listes imbriquées, tableaux, code, liens, images, citations, formules et fragments de 1 à 5 caractères. Le contenu du code est préservé. Les résultats CI sont à confirmer pour ce commit ; pas de validation visuelle annoncée avant les captures après correction.
+
+## Recentrage demandé : accueil uniquement
+
+Le propriétaire a demandé de poursuivre uniquement la refonte visuelle de l’accueil. Les ajouts de fournisseurs, de routeur et de génération d’images du PDF sont donc reportés. La correction Markdown déjà terminée et passée aux tests est conservée. L’audit avant correction a réussi sur l’APK 0.3 (exécution 40599262618) ; la phase B a passé tests, lint, types du moteur et natifs et lecture réelle des documents (40599612009).
+
+La livraison accueil ajoute un orbe RuntimeEffect Skia (bandes, reflet, contour, respiration 4 s, pulsation à la frappe, C et étincelle), un fond Skia plafonné à 30 fps avec grain/étoiles et arrêt en économie d’énergie, le nom en dégradé, les entrées mot par mot, les cartes en verre avec appui animé et haptique, le composer lumineux et le bouton animé envoyer/stop. La validation sur le nouvel APK et les preuves après correction restent à effectuer avant livraison.

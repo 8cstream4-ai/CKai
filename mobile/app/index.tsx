@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Share, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -12,6 +12,9 @@ import { Image } from 'expo-image';
 import { useDocumentReader } from '../src/features/documents';
 import { importAttachment, type Attachment } from '../src/features/attachments';
 import { Attachments, Gallery, Sources, VideoOverlay, WeatherCard } from '../src/features/rich-ui';
+import { BlurTargetView } from 'expo-blur';
+import { HomeScene, homeColors } from '../src/features/home/scene';
+import { HomeAtmosphere, LivingOrb, SendControl } from '../src/features/home/effects';
 import { Entrance, GlowFrame, Shimmer, AuroraOrb } from '../src/features/motion';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRuntime } from '../src/runtime';
@@ -82,8 +85,12 @@ function Profile({ colors }: { colors: Colors }) {
   </KeyboardAvoidingView>;
 }
 
-function ChatScreen({ colors }: { colors: Colors }) {
+function ChatScreen({ colors: baseColors }: { colors: Colors }) {
   const runtime = useRuntime(); const insets = useSafeAreaInsets(); const { height } = useWindowDimensions();
+  const isHome=runtime.messages.length===0;
+  const colors=useMemo(()=>isHome?homeColors(baseColors,runtime.preferences.theme==='light',runtime.preferences.theme==='amoled'):baseColors,[isHome,baseColors,runtime.preferences.theme]);
+  const blurTarget=useRef<React.ComponentRef<typeof View>>(null);
+  const [focused,setFocused]=useState(false);
   const reader = useDocumentReader();
   const [attachments, setAttachments] = useState<Attachment[]>([]); const [attachOpen, setAttachOpen] = useState(false);
   const [importing, setImporting] = useState(''); const [video, setVideo] = useState<Attachment | null>(null);
@@ -153,14 +160,16 @@ function ChatScreen({ colors }: { colors: Colors }) {
   }
   const runtimeLatest = useRef(runtime); runtimeLatest.current = runtime;
   const onRetry = useCallback((id: string) => { void runtimeLatest.current.retry(id); }, []);
+  const choosePrompt=useCallback((value:string)=>{setDraft(value);input.current?.focus();},[]);
   const lastMessageId = runtime.messages.at(-1)?.id;
   const currentActivity = runtime.activity.at(-1)?.text;
   const greeting = new Date().getHours() >= 18 || new Date().getHours() < 5 ? 'Bonsoir' : 'Bonjour';
   return <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
+    {isHome?<BlurTargetView ref={blurTarget} pointerEvents="none" style={{position:'absolute',inset:0}}><HomeAtmosphere disabled={!animate} light={runtime.preferences.theme==='light'} /></BlurTargetView>:null}
     <StatusBar style={runtime.preferences.theme === 'light' ? 'dark' : 'light'} />
-    <View style={{ height: 62, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8 }}>
+    <View style={{ height: 64, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8 }}>
       <IconButton name="menu-outline" label="Historique" colors={colors} onPress={() => setDrawer(true)} />
-      <Text numberOfLines={1} style={{ color: colors.ink, flex: 1, textAlign: 'center', fontSize: 14, fontWeight: '500', paddingHorizontal: 10 }}>{runtime.current?.title || 'CKai'}</Text>
+      {isHome?<View style={{flex:1,alignItems:'center'}} accessible accessibilityLabel="CKai, accueil"><LivingOrb size={40} miniature disabled={!animate} /></View>:<Text numberOfLines={1} style={{ color: colors.ink, flex: 1, textAlign: 'center', fontSize: 14, fontWeight: '500', paddingHorizontal: 12 }}>{runtime.current?.title || 'CKai'}</Text>}
       <IconButton name="create-outline" label="Nouvelle conversation" disabled={busy} colors={colors} onPress={() => { void runtime.openChat(null); }} />
     </View>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -168,18 +177,9 @@ function ChatScreen({ colors }: { colors: Colors }) {
         <FlashList ref={list} data={runtime.messages} keyExtractor={message => message.id} getItemType={message => message.role}
           keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 12, paddingBottom: 12 }}
           onScroll={event => { const { contentSize, contentOffset, layoutMeasurement } = event.nativeEvent; following.current = contentSize.height - contentOffset.y - layoutMeasurement.height < 100; setAtBottom(following.current); }} scrollEventThrottle={64}
-          onContentSizeChange={() => { if (following.current) list.current?.scrollToEnd({ animated: false }); }}
+          onContentSizeChange={() => { if (runtime.messages.length && following.current) list.current?.scrollToEnd({ animated: false }); }}
           renderItem={({ item }) => <MessageRow message={item} colors={colors} latest={item.id === lastMessageId} busy={busy} onRetry={onRetry} onPlay={setVideo} animate={animate} />}
-          ListEmptyComponent={<View style={{ minHeight: Math.max(340, height - insets.top - insets.bottom - 265), justifyContent: 'center', paddingTop: 25, paddingBottom: 30 }}>
-            <Entrance reduced={!animate} style={{ alignItems: 'center' }}><AuroraOrb disabled={!animate} size={120} /><Text style={{ color: colors.muted, fontSize: 9, letterSpacing: 2.5, marginBottom: 15 }}>UN PEU DE CLARTÉ, BEAUCOUP DE POSSIBLES</Text>
-              <Text accessibilityRole="header" style={{ fontSize: 33, lineHeight: 42, color: colors.ink, textAlign: 'center', fontFamily: tokens.font.answer }}>{greeting}, {runtime.preferences.name}.{ '\n' }On explore une idée ?</Text>
-              <Text style={{ color: colors.muted, textAlign: 'center', fontSize: 13, lineHeight: 21, marginTop: 15, marginBottom: 28 }}>Une question, une intuition, un projet.{ '\n' }Fais de la place à ce qui t’inspire.</Text>
-            </Entrance>
-            <Entrance reduced={!animate} delay={180}><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>{prompts.map(prompt => <Pressable key={prompt.title} accessibilityRole="button" onPress={() => { setDraft(prompt.prompt); input.current?.focus(); }}
-              style={({ pressed }) => ({ width: '48%', minHeight: 100, borderWidth: 1, borderColor: colors.line, borderRadius: 17, padding: 15, backgroundColor: pressed ? colors.surface : 'transparent' })}>
-              <Icon name={prompt.icon} color={colors.accent} size={18} /><Text style={{ color: colors.ink, fontSize: 12, fontWeight: '500', marginTop: 10 }}>{prompt.title}</Text><Text style={{ color: colors.muted, fontSize: 10, marginTop: 5, lineHeight: 15 }}>{prompt.detail}</Text>
-            </Pressable>)}</View></Entrance>
-          </View>} />
+          ListEmptyComponent={<HomeScene name={runtime.preferences.name} greeting={greeting} typing={draft.length} prompts={prompts} colors={colors} disabled={!animate} haptics={runtime.preferences.haptics} light={runtime.preferences.theme==='light'} blurTarget={blurTarget} onPrompt={choosePrompt} />} />
         {!atBottom && runtime.messages.length ? <View style={{ position: 'absolute', bottom: 12, alignSelf: 'center', backgroundColor: colors.surface, borderRadius: 24, borderWidth: 1, borderColor: colors.line }}>
           <IconButton name="arrow-down-outline" label="Dernier message" colors={colors} onPress={() => { following.current = true; list.current?.scrollToEnd({ animated: true }); }} />
         </View> : null}
@@ -194,19 +194,17 @@ function ChatScreen({ colors }: { colors: Colors }) {
           <Text numberOfLines={1} style={{ padding: 8, color: colors.ink, fontSize: 10 }}>{item.name}</Text><View style={{ position: 'absolute', top: 0, right: 0, backgroundColor: '#0008', borderRadius: 20 }}><IconButton name="close-outline" label={`Retirer ${item.name}`} colors={colors} disabled={busy} onPress={() => setAttachments(items => items.filter(file => file.id !== item.id))} /></View>
         </View>)}</ScrollView> : null}
         {importing ? <View style={{ flexDirection: 'row', gap: 10, padding: 12, alignItems: 'center' }}><ActivityIndicator color={colors.accent} /><Text style={{ color: colors.muted, flex: 1, fontSize: 12 }}>Lecture de {importing}…</Text></View> : null}
-        <GlowFrame active={runtime.busy} reduced={!animate} colors={colors}>
-          <View style={{ backgroundColor: colors.surface, borderRadius: tokens.radius.composer - 1, paddingHorizontal: 15, paddingTop: 9, paddingBottom: 8 }}>
-            <TextInput ref={input} value={draft} onChangeText={setDraft} multiline maxLength={9000} placeholder="Écrire à CKai…" placeholderTextColor={colors.muted} accessibilityLabel="Message à CKai"
-              style={{ color: colors.ink, fontSize: 16, lineHeight: 23, minHeight: 49, maxHeight: 160, padding: 7, textAlignVertical: 'top' }} />
+        <GlowFrame active={runtime.busy || focused} reduced={!animate} colors={colors}>
+          <View style={{ backgroundColor: colors.surface, borderRadius: tokens.radius.composer - 1, paddingHorizontal: 12, paddingTop: 8, paddingBottom: 8 }}>
+            <TextInput ref={input} value={draft} onChangeText={setDraft} onFocus={()=>setFocused(true)} onBlur={()=>setFocused(false)} multiline maxLength={9000} placeholder="Écrire à CKai…" placeholderTextColor={colors.muted} accessibilityLabel="Message à CKai"
+              style={{ color: colors.ink, fontSize: 16, lineHeight: 23, minHeight: 48, maxHeight: 160, padding: 8, textAlignVertical: 'top' }} />
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <IconButton name="add-outline" label="Joindre une photo, une vidéo ou un fichier" colors={colors} disabled={busy} onPress={() => setAttachOpen(true)} />
               <Pressable disabled={busy} onPress={() => setModelsOpen(true)} accessibilityRole="button" accessibilityLabel="Choisir le modèle" style={{ minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 7 }}>
                 <Icon name="sparkles-outline" color={colors.accent} size={15} /><Text style={{ color: colors.muted, fontSize: 11 }}>{levels.find(level => level.id === runtime.preferences.level)?.title}</Text><Icon name="chevron-down" color={colors.muted} size={11} />
               </Pressable>
               <IconButton name={runtime.preferences.web === 'off' ? 'globe-outline' : 'globe'} label={`Recherche web : ${runtime.preferences.web === 'off' ? 'désactivée' : runtime.preferences.web === 'on' ? 'forcée' : 'automatique'}`} colors={colors} disabled={busy} onPress={() => { const web = runtime.preferences.web === 'auto' ? 'on' : runtime.preferences.web === 'on' ? 'off' : 'auto'; void runtime.setPreferences({ web }).catch(notifyError); }} />
-              <Pressable accessibilityRole="button" accessibilityLabel={runtime.busy ? 'Arrêter la réponse' : 'Envoyer'} disabled={!runtime.busy && (!draft.trim() && !attachments.length || submitting || !!importing)} onPress={() => { void send(); }} style={({ pressed }) => ({ width: 48, height: 48, justifyContent: 'center', alignItems: 'center', opacity: pressed ? 0.6 : !runtime.busy && !draft.trim() && !attachments.length ? 0.3 : 1 })}>
-                <View style={{ backgroundColor: colors.ink, width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' }}><Icon name={runtime.busy ? 'stop' : 'arrow-up'} color={colors.bg} size={runtime.busy ? 14 : 21} /></View>
-              </Pressable>
+              <SendControl busy={runtime.busy} enabled={!!(draft.trim()||attachments.length)&&!submitting&&!importing} onPress={()=>{void send();}} colors={colors} reduced={!animate} />
             </View>
           </View>
         </GlowFrame>

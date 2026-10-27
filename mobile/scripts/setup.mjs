@@ -17,6 +17,7 @@ for (const name of [
   'react-native-safe-area-context', 'react-native-screens', 'react-native-gesture-handler',
   'expo-document-picker', 'expo-image-picker', 'expo-image-manipulator', 'expo-image', 'expo-video',
   'expo-file-system', 'expo-sharing', 'expo-print', 'expo-web-browser', 'expo-speech', 'expo-blur',
+  'expo-battery', '@react-native-masked-view/masked-view',
   'react-native-webview', '@shopify/react-native-skia',
   'react-native-reanimated', 'react-native-worklets', '@expo/vector-icons', '@shopify/flash-list',
 ]) {

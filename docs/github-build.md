@@ -1,24 +1,27 @@
-# Reprendre CKai avec GitHub
+# Compiler CKai sur GitHub
 
-Le compte GitHub connecté a été confirmé par le connecteur : `8cstream4-ai`. Au moment de la vérification, aucun dépôt ni installation donnant accès aux dépôts n’était visible. Le connecteur disponible sait écrire des fichiers et des commits dans un dépôt existant, mais n’expose pas sa création ni l’ajout d’un secret Actions. L’accès réseau du terminal est toujours bloqué ; la commande `gh` ne peut pas remplacer ces opérations ici.
+Le dépôt `8cstream4-ai/CKai` est connecté. Les sources Android, le moteur IA et l’icône ont été transférés sur `main`.
 
-## Préparation nécessaire sur GitHub
+## Compilation
 
-1. Créer un dépôt **privé**, nommé `CKai`, avec un README pour initialiser sa branche.
-2. Autoriser ce dépôt pour la connexion GitHub utilisée par Codex.
-3. Transférer les fichiers du projet en excluant `.env.local`, `_private/`, les anciens aperçus et les sauvegardes. L’archive `CKai-pour-GitHub.zip` est préparée sans ces secrets et sorties.
-4. Dans le dépôt, ouvrir Settings → Secrets and variables → Actions → New repository secret, puis ajouter `GROQ_API_KEY` avec la clé fournie. Le connecteur ne propose pas l’écriture de ce secret ; ne pas le mettre dans un fichier du dépôt.
+Le workflow **CKai - APK Android** démarre lors des changements à l’application sur `main`, ou manuellement dans Actions. Il prépare Node, Java et Android, exécute les tests, installe les dépendances compatibles Expo, vérifie TypeScript puis compile un APK autonome avec son JavaScript intégré. Cette compilation Gradle ne nécessite pas de connexion Expo.
 
-Le transfert peut être fait par Codex dès que le dépôt est accessible. La création du dépôt et l’autorisation de son accès doivent passer par une capacité d’administration disponible ou par l’interface GitHub. Aucun mot de passe GitHub n’a été demandé ni supposé identique au mot de passe Expo.
+Une fois l’exécution réussie, télécharger l’artefact `CKai-Android-…`, extraire son ZIP et installer `CKai-test.apk`. L’artefact est conservé trois jours. Le lancement et la fluidité sur téléphone demandent encore une vérification manuelle.
 
-## Compilation préparée
+## Groq
 
-`.github/workflows/android-apk.yml` prépare Node, Java et le SDK Android sur un runner GitHub, exécute les tests, installe les dépendances Expo compatibles, valide une vraie réponse de Groq, prépare la clé pour ce build privé, effectue le typecheck puis compile un APK avec son JavaScript intégré. Aucun compte Expo n’est nécessaire pour **cette voie de compilation Gradle sur GitHub**.
+Sans secret de compilation, saisir la clé Groq dans les réglages de l’application ; elle est conservée dans SecureStore.
 
-Le workflow démarre sur un push à `main` concernant l’application, ou depuis Actions → CKai - APK Android prive → Run workflow. Il ne s’exécute que dans un dépôt privé, ne demande que `contents: read` et n’est pas déclenché par une pull request provenant d’un fork. Il consomme les minutes et le stockage Actions disponibles sur le compte ; aucun forfait payant n’est activé par le projet.
+Pour un build personnel préconfiguré, ajouter le secret `GROQ_API_KEY` dans Settings → Secrets and variables → Actions. Le workflow teste alors une vraie réponse Groq avant de compiler, puis prépare la configuration embarquée. Une clé embarquée reste extractible de l’APK : conserver le dépôt et les artefacts privés pour ce mode.
 
-La clé reste un secret GitHub pendant la préparation, puis entre dans l’APK privé à la demande de l’utilisateur. Elle n’est pas ajoutée au dépôt. L’artefact APK est conservé trois jours sur GitHub. Les mises à jour de l’application utilisent, dans cette version de test, la signature issue du projet Android généré.
+Le connecteur GitHub utilisé pour transférer le code ne permet pas de définir les secrets Actions. Aucun identifiant Expo ni fichier `.env.local` n’a été transféré.
 
-## État réel
+## Vérification manuelle
 
-La configuration et les scripts sont préparés localement. La syntaxe YAML, les tests du moteur et les contrôles locaux peuvent être vérifiés sans compte GitHub. **Aucun dépôt n’a encore été créé, aucun fichier transféré et aucun workflow exécuté.** Une compilation réussie devra encore être suivie d’un test d’installation et d’utilisation sur un appareil Android.
+1. Installer l’APK et créer le profil local.
+2. Dans Réglages, renseigner et tester la clé si elle n’était pas fournie au build.
+3. Envoyer une question, vérifier le streaming et arrêter une réponse.
+4. Fermer puis rouvrir l’application et retrouver la conversation.
+5. Vérifier les thèmes et la navigation sur le téléphone.
+
+La réussite des tests du moteur ne remplace pas cette vérification Android.

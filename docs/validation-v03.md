@@ -41,3 +41,9 @@ La version 0.2 était un chat minimal et ne remplissait pas le cahier des charge
 Pas encore : génération d’images par un fournisseur dédié, vidéo/audio exhaustive, PDF scannés avec OCR multipage, export DOCX/XLSX/PPTX/ZIP, embeddings vectoriels, projets, chiffrement SQLCipher, comptes multiples et verrouillage PIN/biométrie, éditeur complet de thème, LaTeX/graphiques, dictée, export chiffré et couverture FR/EN complète. Les objectifs 60 fps et démarrage en moins de 2 secondes demandent des mesures sur appareil.
 
 Les tests locaux couvrent 35 cas du moteur, des sources, du contexte documentaire et du Markdown incrémental. La compilation Android et l’essai sur téléphone sont des validations distinctes.
+
+## Résultat de livraison 0.3
+
+Exécution GitHub Actions `40591201754` : tests du moteur (35), extraction réelle PDF/DOCX/XLSX hors ligne, erreurs PDF corrompu/sans texte, contrôle TypeScript, compilation Android et test du vrai APK sur émulateur réussis. Le test Android couvre le lancement, la création du profil, sa persistance après redémarrage, le menu des imports et les réglages. Des captures et journaux sont conservés dans l’artefact de vérification. Il ne vérifie pas une vraie réponse Groq, les gestes sur un téléphone ou les objectifs de performance.
+
+Téléchargement : https://github.com/8cstream4-ai/CKai/actions/runs/40591201754/artifacts/12775018453

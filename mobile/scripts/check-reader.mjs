@@ -21,5 +21,9 @@ try {
   await page.evaluate(() => window.ckaiRead({ id: 'broken', type: 'pdf', data: btoa('not a PDF') }));
   assert.ok(await page.evaluate(() => window.__results.find(item => item.id === 'broken')?.error));
   console.log('Fichier PDF corrompu : erreur gérée.');
+  await page.evaluate(data => window.ckaiRead({ id: 'blank', type: 'pdf', data }), fixtures.blankPdf);
+  const blank = await page.evaluate(() => window.__results.find(item => item.id === 'blank'));
+  assert.match(blank.error, /ne contient pas de texte extractible/);
+  console.log('PDF sans texte : limite annoncée sans faux OCR.');
   assert.deepEqual(errors, []);
 } finally { await browser.close(); }

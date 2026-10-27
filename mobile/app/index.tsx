@@ -73,7 +73,7 @@ function ChatScreen({ colors }: { colors: Colors }) {
   const [draft, setDraft] = useState(''); const [drawer, setDrawer] = useState(false); const [search, setSearch] = useState('');
   const [modelsOpen, setModelsOpen] = useState(false); const [activityOpen, setActivityOpen] = useState(false);
   const [atBottom, setAtBottom] = useState(true); const [submitting, setSubmitting] = useState(false);
-  const list = useRef<FlashListRef<StoredMessage>>(null); const input = useRef<TextInput>(null);
+  const list = useRef<FlashListRef<StoredMessage>>(null); const input = useRef<React.ComponentRef<typeof TextInput>>(null);
   const following = useRef(true); const draftReady = useRef(false); const draftSnapshot = useRef(draft); draftSnapshot.current = draft;
   const draftId = runtime.current?.id ?? 'new';
   useEffect(() => {

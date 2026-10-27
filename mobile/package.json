@@ -15,7 +15,8 @@
     "prebuild": "expo prebuild --platform android",
     "android": "expo run:android",
     "apk": "node scripts/apk.mjs",
-    "eas-build-post-install": "node scripts/provision.mjs"
+    "eas-build-post-install": "node scripts/provision.mjs",
+    "test:reader": "node scripts/check-reader.mjs"
   },
   "dependencies": {
     "expo": "~58.0.0",
@@ -28,6 +29,7 @@
   "devDependencies": {
     "typescript": "~6.0.3",
     "@types/react": "^19.2.0",
-    "esbuild": "^0.25.10"
+    "esbuild": "^0.25.10",
+    "playwright": "^1.56.1"
   }
 }

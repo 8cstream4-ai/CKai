@@ -62,6 +62,10 @@ jobs:
           CKAI_SKIP_PROVISION: '1'
         run: npm run setup
 
+      - name: Tester les vrais imports PDF DOCX XLSX hors ligne
+        working-directory: mobile
+        run: npm run test:reader
+
       - name: Verifier la vraie reponse Groq
         if: env.HAS_GROQ == 'true'
         env:

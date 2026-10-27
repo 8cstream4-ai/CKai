@@ -5,7 +5,7 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as WebBrowser from 'expo-web-browser';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { Icon, IconButton, Sheet } from '../ui';
 import type { Colors } from '../theme';
@@ -31,10 +31,10 @@ export function ImageCard({ uri, title, colors, source, credit, license }: { uri
     </Pressable>
     {source ? <Pressable onPress={() => { void WebBrowser.openBrowserAsync(source).catch(() => {}); }} style={{ padding: 12, minHeight: 48 }} accessibilityRole="link"><Text numberOfLines={1} style={{ color: colors.ink, fontSize: 12 }}>{title}</Text><Text numberOfLines={2} style={{ color: colors.muted, fontSize: 10, marginTop: 5 }}>{credit || 'Source de l’image'}{license ? ` · ${license}` : ''}</Text></Pressable> : null}
   </View>
-    <Modal visible={open} animationType="fade" transparent onRequestClose={() => setOpen(false)}><View style={{ flex: 1, backgroundColor: '#000F', justifyContent: 'center' }}>
+    <Modal visible={open} animationType="fade" transparent onRequestClose={() => setOpen(false)}><GestureHandlerRootView style={{ flex: 1, backgroundColor: '#000F', justifyContent: 'center' }}>
       <GestureDetector gesture={Gesture.Simultaneous(pinch, double)}><Animated.View style={[{ width: '100%', height: '75%' }, style]}><Image source={uri} contentFit="contain" style={{ flex: 1 }} /></Animated.View></GestureDetector>
       <View style={{ position: 'absolute', top: 45, left: 15, right: 15, flexDirection: 'row', justifyContent: 'space-between' }}><IconButton name="close-outline" label="Fermer l’image" colors={colors} onPress={() => setOpen(false)} /><IconButton name="share-outline" label="Partager l’image" colors={colors} onPress={() => { void (async () => { try { const local = uri.startsWith('https:') ? (await File.downloadFileAsync(uri, Paths.cache)).uri : uri; await shareFile(local, 'image/jpeg'); } catch { Alert.alert('Image', 'Téléchargement impossible.'); } })(); }} /></View>
-    </View></Modal>
+    </GestureHandlerRootView></Modal>
   </MediaBoundary>;
 }
 function VideoPlayer({ uri, colors, close }: { uri: string; colors: Colors; close(): void }) {

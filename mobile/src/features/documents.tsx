@@ -7,7 +7,7 @@ interface Result { text: string; truncated: boolean; pages: number; }
 const Context = createContext<((type: string, data: string) => Promise<Result>) | null>(null);
 export function useDocumentReader() { const value = useContext(Context); if (!value) throw new Error('Lecteur indisponible.'); return value; }
 export function DocumentReaderProvider({ children }: { children: ReactNode }) {
-  const web = useRef<WebView>(null); const [request, setRequest] = useState<Request | null>(null); const [ready, setReady] = useState(false);
+  const web = useRef<WebView<{}>>(null); const [request, setRequest] = useState<Request | null>(null); const [ready, setReady] = useState(false);
   const pending = useRef<{ resolve(value: Result): void; reject(error: Error): void } | null>(null);
   const finish = (error?: string, result?: Result) => { const job = pending.current; pending.current = null; setRequest(null); if (error) job?.reject(new Error(error)); else if (result) job?.resolve(result); };
   useEffect(() => {
@@ -23,7 +23,7 @@ export function DocumentReaderProvider({ children }: { children: ReactNode }) {
     if (pending.current) { reject(new Error('Un document est déjà en cours de lecture.')); return; }
     pending.current = { resolve, reject }; setRequest({ id: String(Date.now()), type, data });
   })}>{children}<View style={{ position: 'absolute', width: 1, height: 1, opacity: 0, overflow: 'hidden' }} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-    <WebView ref={web} source={{ html: reader.html, baseUrl: 'https://ckai.invalid/' }} originWhitelist={['*']} javaScriptEnabled domStorageEnabled={false} mixedContentMode="never" allowFileAccess={false}
+    <WebView<{}> ref={web} source={{ html: reader.html, baseUrl: 'https://ckai.invalid/' }} originWhitelist={['*']} javaScriptEnabled domStorageEnabled={false} mixedContentMode="never" allowFileAccess={false}
       onShouldStartLoadWithRequest={navigation => navigation.url === 'about:blank' || navigation.url === 'https://ckai.invalid/'}
       onMessage={event => { try {
         const result = JSON.parse(event.nativeEvent.data); if (result.ready) { setReady(true); return; }

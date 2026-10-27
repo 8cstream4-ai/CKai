@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Share, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -151,6 +151,8 @@ function ChatScreen({ colors }: { colors: Colors }) {
     } catch { Alert.alert('Import', 'Le sélecteur n’a pas pu être ouvert. Réessaie.'); }
     finally { setImporting(''); }
   }
+  const runtimeLatest = useRef(runtime); runtimeLatest.current = runtime;
+  const onRetry = useCallback((id: string) => { void runtimeLatest.current.retry(id); }, []);
   const lastMessageId = runtime.messages.at(-1)?.id;
   const currentActivity = runtime.activity.at(-1)?.text;
   const greeting = new Date().getHours() >= 18 || new Date().getHours() < 5 ? 'Bonsoir' : 'Bonjour';
@@ -167,7 +169,7 @@ function ChatScreen({ colors }: { colors: Colors }) {
           keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 12, paddingBottom: 12 }}
           onScroll={event => { const { contentSize, contentOffset, layoutMeasurement } = event.nativeEvent; following.current = contentSize.height - contentOffset.y - layoutMeasurement.height < 100; setAtBottom(following.current); }} scrollEventThrottle={64}
           onContentSizeChange={() => { if (following.current) list.current?.scrollToEnd({ animated: false }); }}
-          renderItem={({ item }) => <MessageRow message={item} colors={colors} latest={item.id === lastMessageId} busy={busy} onRetry={id => { void runtime.retry(id); }} onPlay={setVideo} animate={animate} />}
+          renderItem={({ item }) => <MessageRow message={item} colors={colors} latest={item.id === lastMessageId} busy={busy} onRetry={onRetry} onPlay={setVideo} animate={animate} />}
           ListEmptyComponent={<View style={{ minHeight: Math.max(340, height - insets.top - insets.bottom - 265), justifyContent: 'center', paddingTop: 25, paddingBottom: 30 }}>
             <Entrance reduced={!animate} style={{ alignItems: 'center' }}><AuroraOrb disabled={!animate} size={120} /><Text style={{ color: colors.muted, fontSize: 9, letterSpacing: 2.5, marginBottom: 15 }}>UN PEU DE CLARTÉ, BEAUCOUP DE POSSIBLES</Text>
               <Text accessibilityRole="header" style={{ fontSize: 33, lineHeight: 42, color: colors.ink, textAlign: 'center', fontFamily: tokens.font.answer }}>{greeting}, {runtime.preferences.name}.{ '\n' }On explore une idée ?</Text>

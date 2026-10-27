@@ -163,7 +163,7 @@ export function RuntimeProvider({ children }: { children: ReactNode }) {
       const tools: Record<string, Tool> = { ...createBasicTools(), ...createResearchTools({ fetch: expoFetch as typeof globalThis.fetch, search,
         onSources: addSources, onImages: images => { rich.images = images as unknown as GalleryImage[]; draw(); } }),
         create_file: { description: 'Créer un fichier texte, Markdown, CSV, JSON, HTML ou PDF à télécharger. Ne prétends créer un autre format.', parameters: { type: 'object', properties: { name: { type: 'string' }, type: { type: 'string', enum: ['txt','md','csv','json','html','pdf'] }, content: { type: 'string' } }, required: ['name','type','content'], additionalProperties: false },
-          async execute(input, signal) {
+          async execute(input, signal): Promise<Json> {
             signal.throwIfAborted(); const data = input as { name?: unknown; type?: unknown; content?: unknown };
             if (typeof data.name !== 'string' || typeof data.content !== 'string' || typeof data.type !== 'string' || !['txt','md','csv','json','html','pdf'].includes(data.type) || data.content.length > 100000) return { error: 'Format ou taille non pris en charge.' };
             const name = data.name.replace(/[^\p{L}\p{N}._ -]/gu, '_').slice(0, 100).replace(/\.[^.]+$/, '') + '.' + data.type;
@@ -180,9 +180,9 @@ export function RuntimeProvider({ children }: { children: ReactNode }) {
       if (preferences.web === 'off') { delete tools.web_search; delete tools.fetch_url; }
       if (preferences.memory) {
         tools.save_memory = { description: 'Enregistrer une préférence durable ou un fait explicitement donné par la personne. Ne mémorise pas de secrets.', parameters: { type: 'object', properties: { fact: { type: 'string' } }, required: ['fact'], additionalProperties: false },
-          async execute(input) { const fact = (input as { fact?: unknown })?.fact; if (typeof fact !== 'string' || !fact.trim() || fact.length > 1000) return { error: 'Fait invalide' }; await (await db()).runAsync('INSERT INTO memories(id,fact,createdAt) VALUES (?,?,?)', randomUUID(), fact.trim(), Date.now()); return { saved: true }; } };
+          async execute(input): Promise<Json> { const fact = (input as { fact?: unknown })?.fact; if (typeof fact !== 'string' || !fact.trim() || fact.length > 1000) return { error: 'Fait invalide' }; await (await db()).runAsync('INSERT INTO memories(id,fact,createdAt) VALUES (?,?,?)', randomUUID(), fact.trim(), Date.now()); return { saved: true }; } };
         tools.recall_memory = { description: 'Retrouver des souvenirs locaux pertinents.', parameters: { type: 'object', properties: { query: { type: 'string' } }, required: ['query'], additionalProperties: false },
-          async execute(input) { const query = (input as { query?: unknown })?.query; if (typeof query !== 'string') return []; return await (await db()).getAllAsync<{ fact: string }>('SELECT fact FROM memories WHERE instr(lower(fact),lower(?))>0 LIMIT 10', query.slice(0, 100)) as unknown as Json; } };
+          async execute(input): Promise<Json> { const query = (input as { query?: unknown })?.query; if (typeof query !== 'string') return []; return await (await db()).getAllAsync<{ fact: string }>('SELECT fact FROM memories WHERE instr(lower(fact),lower(?))>0 LIMIT 10', query.slice(0, 100)) as unknown as Json; } };
       }
       if (preferences.web === 'on') {
         const found = await search(query, scope);

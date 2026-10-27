@@ -51,6 +51,9 @@ jobs:
         with:
           log-accepted-android-sdk-licenses: false
 
+      - name: Installer les dependances du moteur
+        run: npm install --no-audit --fund=false
+
       - name: Tester le moteur IA
         run: npm test
 

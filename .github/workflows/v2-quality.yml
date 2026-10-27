@@ -1,0 +1,36 @@
+name: CKai V2 - Types et tests par phase
+on:
+  push:
+    branches: [main]
+    paths: ['src/**','tests/**','mobile/**','package.json','.github/workflows/v2-quality.yml']
+permissions:
+  contents: read
+jobs:
+  quality:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+    steps:
+      - uses: actions/checkout@v7
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v6
+        with: { node-version: '24' }
+      - run: npm install --no-audit --fund=false
+      - run: npm test
+      - run: npm run lint
+      - run: npm run typecheck
+      - name: Installer les modules natifs et lecteurs
+        working-directory: mobile
+        env: { CKAI_SKIP_PROVISION: '1' }
+        run: npm run setup
+      - name: Preparer un bootstrap vide sans secret
+        working-directory: mobile
+        run: npm run provision
+      - name: Verifier les types natifs
+        working-directory: mobile
+        run: npm run typecheck
+      - name: Tester les lecteurs hors ligne
+        working-directory: mobile
+        run: npm run test:reader

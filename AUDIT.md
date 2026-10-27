@@ -22,3 +22,7 @@ Le propriétaire confirme que l’APK 0.3 fonctionne sur son téléphone et sign
 ## Recherche préalable des offres
 
 Les quotas du PDF sont indicatifs. Pollinations exige actuellement une clé pour générer ; son ancien accès anonyme n’est pas présenté comme disponible. ChatGPT gratuit n’équivaut pas à une API OpenAI gratuite. Le routeur gratuit exclura OpenAI payant et les modèles OpenRouter non gratuits. Les comptes, conversations, mémoire, fichiers, thèmes et clés existants doivent rester conservés.
+
+## Phase B — pipeline Markdown
+
+Remend 1.4 (Apache-2.0) répare les délimiteurs ; Unified/Remark Parse/GFM/Math (MIT) produisent un AST rendu avec des composants natifs. Évaluation : Streamdown vise React DOM ; Remend est indépendant du DOM et convient au transport natif. Les parseurs natifs plus récents sont écartés au profit de ce pipeline stable et testable. Cinquante fixtures françaises couvrent les styles, listes imbriquées, tableaux, code, liens, images, citations, formules et fragments de 1 à 5 caractères. Le contenu du code est préservé. Les résultats CI sont à confirmer pour ce commit ; pas de validation visuelle annoncée avant les captures après correction.

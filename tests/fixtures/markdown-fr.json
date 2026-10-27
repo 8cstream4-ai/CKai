@@ -1,0 +1,252 @@
+[
+  {
+    "name": "Gras simple",
+    "source": "Bonjour **Camille**.",
+    "expected": "Camille"
+  },
+  {
+    "name": "Gras français",
+    "source": "**« Bonjour »** : tout va bien.",
+    "expected": "Bonjour"
+  },
+  {
+    "name": "Gras avec espaces",
+    "source": "Voici ** un mot important **.",
+    "expected": "un mot important"
+  },
+  {
+    "name": "Gras et ponctuation",
+    "source": "**Attention :** vérifie ce point.",
+    "expected": "Attention"
+  },
+  {
+    "name": "Espaces insécables",
+    "source": "** Bonjour ** !",
+    "expected": "Bonjour"
+  },
+  {
+    "name": "Italique",
+    "source": "Un passage *en italique*.",
+    "expected": "en italique"
+  },
+  {
+    "name": "Italique souligné",
+    "source": "Un passage _en italique_.",
+    "expected": "en italique"
+  },
+  {
+    "name": "Gras italique",
+    "source": "Un point ***très important***.",
+    "expected": "très important"
+  },
+  {
+    "name": "Barré",
+    "source": "~~Ancienne valeur~~, nouvelle valeur.",
+    "expected": "Ancienne valeur"
+  },
+  {
+    "name": "Gras imbriqué",
+    "source": "**Du gras avec *une nuance*.**",
+    "expected": "une nuance"
+  },
+  {
+    "name": "Titre un",
+    "source": "# Comprendre CKai",
+    "expected": "Comprendre CKai"
+  },
+  {
+    "name": "Titre deux",
+    "source": "## Une idée claire",
+    "expected": "Une idée claire"
+  },
+  {
+    "name": "Titre trois",
+    "source": "### Trois étapes",
+    "expected": "Trois étapes"
+  },
+  {
+    "name": "Titre six",
+    "source": "###### Petit titre",
+    "expected": "Petit titre"
+  },
+  {
+    "name": "Liste étoiles",
+    "source": "* Premier point\n* Deuxième point",
+    "expected": "Premier point"
+  },
+  {
+    "name": "Liste puces",
+    "source": "• Premier point\n• Deuxième point",
+    "expected": "Deuxième point"
+  },
+  {
+    "name": "Liste tirets",
+    "source": "- Un\n- Deux",
+    "expected": "Un"
+  },
+  {
+    "name": "Liste numérotée",
+    "source": "1. Commencer\n2. Continuer",
+    "expected": "Continuer"
+  },
+  {
+    "name": "Liste décalée",
+    "source": "3. Troisième\n4. Quatrième",
+    "expected": "Troisième"
+  },
+  {
+    "name": "Liste imbriquée",
+    "source": "- Principal\n  - Détail\n  - **Important**",
+    "expected": "Important"
+  },
+  {
+    "name": "Tâches",
+    "source": "- [x] Terminé\n- [ ] À faire",
+    "expected": "Terminé"
+  },
+  {
+    "name": "Citation",
+    "source": "> Une idée à retenir.",
+    "expected": "Une idée à retenir"
+  },
+  {
+    "name": "Citation imbriquée",
+    "source": "> Premier niveau\n>> Second niveau",
+    "expected": "Second niveau"
+  },
+  {
+    "name": "Tableau",
+    "source": "| Nom | Valeur |\n|---|---|\n| Prix | Gratuit |",
+    "expected": "Gratuit"
+  },
+  {
+    "name": "Tableau aligné",
+    "source": "| Gauche | Droite |\n|:---|---:|\n| A | B |",
+    "expected": "Gauche"
+  },
+  {
+    "name": "Tableau français",
+    "source": "| Élément | État |\n|---|---|\n| Mémoire | Activée |",
+    "expected": "Activée"
+  },
+  {
+    "name": "Code inline",
+    "source": "Utilise `const x = 2 * 3;` puis continue.",
+    "expected": "continue"
+  },
+  {
+    "name": "Code bloc",
+    "source": "```ts\nconst mot = \"**texte**\";\n```\n\nEnsuite.",
+    "expected": "Ensuite"
+  },
+  {
+    "name": "Code non fermé",
+    "source": "```python\nprint(\"bonjour\")",
+    "expected": ""
+  },
+  {
+    "name": "Code avec dièses",
+    "source": "```sh\n# commentaire\necho \"*\"\n```",
+    "expected": ""
+  },
+  {
+    "name": "Lien",
+    "source": "Consulte [la documentation](https://example.org).",
+    "expected": "documentation"
+  },
+  {
+    "name": "Lien incomplet",
+    "source": "Consulte [la documentation](https://exampl",
+    "expected": "documentation"
+  },
+  {
+    "name": "Lien texte incomplet",
+    "source": "Consulte [la documentation",
+    "expected": "documentation"
+  },
+  {
+    "name": "Image",
+    "source": "![Un paysage](https://example.org/paysage.jpg)",
+    "expected": ""
+  },
+  {
+    "name": "Image et texte",
+    "source": "Avant ![Un lac](https://example.org/lac.jpg) après.",
+    "expected": "Avant"
+  },
+  {
+    "name": "Séparateur",
+    "source": "Avant.\n\n---\n\nAprès.",
+    "expected": "Après"
+  },
+  {
+    "name": "Emoji",
+    "source": "Bonjour 👋, une idée 💡 pour la famille 👨‍👩‍👧.",
+    "expected": "Bonjour"
+  },
+  {
+    "name": "Citations sources",
+    "source": "Une information vérifiée [1], puis [2].",
+    "expected": "information"
+  },
+  {
+    "name": "Formule inline",
+    "source": "L’aire vaut $x^2 + y^2$.",
+    "expected": "L’aire"
+  },
+  {
+    "name": "Formule bloc",
+    "source": "$$\nx^2 + y^2 = z^2\n$$",
+    "expected": ""
+  },
+  {
+    "name": "Caractère invisible",
+    "source": "Bon​jour **Camille**.",
+    "expected": "Bonjour"
+  },
+  {
+    "name": "Marqueurs échappés",
+    "source": "Du \\*\\*gras\\*\\* propre.",
+    "expected": "gras"
+  },
+  {
+    "name": "Gras non fermé",
+    "source": "Voici **une phrase importante",
+    "expected": "une phrase importante"
+  },
+  {
+    "name": "Italique non fermé",
+    "source": "Voici *une nuance",
+    "expected": "une nuance"
+  },
+  {
+    "name": "Accent grave non fermé",
+    "source": "Écris `bonjour",
+    "expected": "Écris"
+  },
+  {
+    "name": "Multiples paragraphes",
+    "source": "Premier **point**.\n\nDeuxième *point*.",
+    "expected": "Deuxième"
+  },
+  {
+    "name": "HTML ignoré",
+    "source": "<script>alert(1)</script>\n\nDu texte sain.",
+    "expected": "texte sain"
+  },
+  {
+    "name": "Lien référencé",
+    "source": "Voir [notre guide][guide].\n\n[guide]: https://example.org",
+    "expected": "notre guide"
+  },
+  {
+    "name": "Listes et code",
+    "source": "- Un point\n- Un autre avec `a*b`",
+    "expected": "Un autre"
+  },
+  {
+    "name": "Français complet",
+    "source": "## Résumé\n\n**Été :** café, œuvre, déjà.\n\n- *Précis*\n- ~~Ancien~~\n\n[Source](https://example.org)",
+    "expected": "œuvre"
+  }
+]

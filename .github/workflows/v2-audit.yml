@@ -1,0 +1,52 @@
+name: CKai V2 - Audit visuel avant correction
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/v2-audit.yml', 'scripts/visual-audit.py', 'scripts/publish-proofs.py']
+permissions:
+  contents: write
+  actions: read
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with: { persist-credentials: false }
+      - uses: actions/setup-java@v6
+        with: { distribution: temurin, java-version: '17' }
+      - uses: actions/download-artifact@v4
+        with:
+          name: CKai-Android-8
+          path: artifacts
+          run-id: 40591201754
+          github-token: ${{ github.token }}
+      - name: Activer KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Audit sur le vrai APK existant
+        uses: reactivecircus/android-emulator-runner@v2
+        env: { PROOF_PHASE: before }
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
+          script: python scripts/visual-audit.py
+      - name: Publier les captures synthetiques pour revue
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROOF_PHASE: before
+        run: python scripts/publish-proofs.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: CKai-V2-avant
+          path: artifacts/visual-proof
+          retention-days: 7

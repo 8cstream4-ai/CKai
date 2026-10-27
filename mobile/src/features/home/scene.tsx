@@ -13,13 +13,13 @@ export function homeColors(base:Colors, light:boolean, amoled:boolean):Colors {
 export const HomeScene=memo(function HomeScene({name,greeting,typing,prompts,colors,disabled,haptics,light,blurTarget,onPrompt}: {name:string;greeting:string;typing:number;prompts:HomePrompt[];colors:Colors;disabled:boolean;haptics:boolean;light:boolean;blurTarget:React.RefObject<React.ComponentRef<typeof View>|null>;onPrompt(prompt:string):void}) {
   const {width}=useWindowDimensions();const wide=width>=650;
   const [fontsReady]=useFonts({CKaiHomeSans:Inter_400Regular,CKaiHomeMedium:Inter_500Medium,CKaiHomeSerif:Newsreader_400Regular});
-  return <View style={{width:'100%',maxWidth:wide?760:480,alignSelf:'center',paddingTop:wide?12:20,paddingBottom:24,flexDirection:wide?'row':'column',alignItems:'center',gap:wide?28:0}}>
+  return <View style={{width:'100%',maxWidth:wide?760:480,alignSelf:'center',paddingTop:12,paddingBottom:16,flexDirection:wide?'row':'column',alignItems:'center',gap:wide?28:0}}>
     <View style={{alignItems:'center',width:wide?'44%':'100%'}}>
-      <LivingOrb size={wide?128:156} typing={typing} disabled={disabled} />
+      <LivingOrb size={wide||width<380?128:144} typing={typing} disabled={disabled} />
       <View style={{marginTop:4}}><HomeTitle name={name} greeting={greeting} colors={colors} disabled={disabled} fontsReady={fontsReady} /></View>
-      <Text style={{fontFamily:fontsReady?'CKaiHomeSans':undefined,color:colors.muted,fontSize:13,lineHeight:22,textAlign:'center',marginTop:12,marginBottom:28,maxWidth:300}}>Une question, une intuition, un projet.{ '\n' }On lui donne une nouvelle dimension.</Text>
+      <Text style={{fontFamily:fontsReady?'CKaiHomeSans':undefined,color:colors.muted,fontSize:13,lineHeight:22,textAlign:'center',marginTop:8,marginBottom:20,maxWidth:300}}>Une question, une intuition, un projet.{ '\n' }On lui donne une nouvelle dimension.</Text>
     </View>
-    <View style={{width:wide?'52%':'100%',flexDirection:'row',flexWrap:'wrap',justifyContent:'space-between',rowGap:12}}>
+    <View style={{width:wide?'52%':'100%',flexDirection:'row',flexWrap:'wrap',columnGap:12,rowGap:12}}>
       {prompts.map((prompt,index)=><GlassCard key={prompt.title} title={prompt.title} detail={prompt.detail} icon={prompt.icon} colors={colors} index={index} onPrompt={onPrompt} prompt={prompt.prompt} disabledMotion={disabled} haptics={haptics} blurTarget={blurTarget} light={light} />)}
     </View>
   </View>;

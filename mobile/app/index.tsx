@@ -26,10 +26,10 @@ import type { Effort, Level } from '../../src/ai/types.ts';
 import { db } from '../src/storage';
 
 const prompts: { title: string; detail: string; icon: IconName; prompt: string }[] = [
-  { title: 'Une nouvelle idée', detail: 'Et si on essayait autrement ?', icon: 'sparkles-outline', prompt: 'Aide-moi à trouver une idée originale de projet personnel. Pose-moi trois questions pour commencer.' },
-  { title: 'Comprendre', detail: 'Sans le jargon.', icon: 'book-outline', prompt: 'Explique-moi simplement comment fonctionne une intelligence artificielle, avec une analogie.' },
-  { title: 'Les bons mots', detail: 'Écrire avec justesse.', icon: 'pencil-outline', prompt: 'Aide-moi à écrire un message clair et naturel. Demande-moi à qui il s’adresse et ce que je veux dire.' },
-  { title: 'Construire', detail: 'Une étape à la fois.', icon: 'code-slash-outline', prompt: 'Aide-moi à construire une petite application utile. Demande-moi mon idée et mon niveau en programmation.' },
+  { title: 'Une nouvelle idée', detail: 'Ouvrir le champ.', icon: 'sparkles-outline', prompt: 'Aide-moi à trouver une idée originale de projet personnel. Pose-moi trois questions pour commencer.' },
+  { title: 'Comprendre', detail: 'En toute clarté.', icon: 'book-outline', prompt: 'Explique-moi simplement comment fonctionne une intelligence artificielle, avec une analogie.' },
+  { title: 'Les bons mots', detail: 'Trouver le ton.', icon: 'pencil-outline', prompt: 'Aide-moi à écrire un message clair et naturel. Demande-moi à qui il s’adresse et ce que je veux dire.' },
+  { title: 'Construire', detail: 'Passer à l’action.', icon: 'code-slash-outline', prompt: 'Aide-moi à construire une petite application utile. Demande-moi mon idée et mon niveau en programmation.' },
 ];
 const levels: { id: Level; title: string; description: string }[] = [
   { id: 'auto', title: 'Auto', description: 'Choix local selon la longueur et les mots de la question.' },
@@ -188,7 +188,7 @@ function ChatScreen({ colors: baseColors }: { colors: Colors }) {
         {runtime.busy ? <ActivityIndicator size="small" color={colors.accent} /> : <Icon name="checkmark-circle-outline" color={colors.muted} size={15} />}
         <Shimmer text={runtime.busy ? currentActivity || 'Préparation…' : `Terminé en ${Math.round((runtime.messages.at(-1)?.rich?.durationMs ?? 0) / 1000)} s`} colors={colors} active={runtime.busy && animate} /><Icon name="chevron-forward" color={colors.muted} size={13} />
       </Pressable> : null}
-      <View style={{ paddingHorizontal: 12, paddingTop: 7, paddingBottom: Math.max(insets.bottom, 12) }}>
+      <View style={{ paddingHorizontal: 12, paddingTop: 8, paddingBottom: Math.max(insets.bottom, 12) }}>
         {attachments.length ? <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 10 }}>{attachments.map(item => <View key={item.id} style={{ width: 108, borderRadius: 16, overflow: 'hidden', backgroundColor: colors.raised, borderWidth: 1, borderColor: colors.line }}>
           {item.preview ? <Image source={item.preview} contentFit="cover" style={{ height: 64, width: 108 }} /> : <View style={{ height: 64, alignItems: 'center', justifyContent: 'center' }}><Icon name="document-text-outline" color={colors.accent} size={27} /></View>}
           <Text numberOfLines={1} style={{ padding: 8, color: colors.ink, fontSize: 10 }}>{item.name}</Text><View style={{ position: 'absolute', top: 0, right: 0, backgroundColor: '#0008', borderRadius: 20 }}><IconButton name="close-outline" label={`Retirer ${item.name}`} colors={colors} disabled={busy} onPress={() => setAttachments(items => items.filter(file => file.id !== item.id))} /></View>
@@ -197,7 +197,7 @@ function ChatScreen({ colors: baseColors }: { colors: Colors }) {
         <GlowFrame active={runtime.busy || focused} reduced={!animate} colors={colors}>
           <View style={{ backgroundColor: colors.surface, borderRadius: tokens.radius.composer - 1, paddingHorizontal: 12, paddingTop: 8, paddingBottom: 8 }}>
             <TextInput ref={input} value={draft} onChangeText={setDraft} onFocus={()=>setFocused(true)} onBlur={()=>setFocused(false)} multiline maxLength={9000} placeholder="Écrire à CKai…" placeholderTextColor={colors.muted} accessibilityLabel="Message à CKai"
-              style={{ color: colors.ink, fontSize: 16, lineHeight: 23, minHeight: 48, maxHeight: 160, padding: 8, textAlignVertical: 'top' }} />
+              style={{ color: colors.ink, fontSize: 16, lineHeight: 24, minHeight: 48, maxHeight: 160, padding: 8, textAlignVertical: 'top' }} />
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <IconButton name="add-outline" label="Joindre une photo, une vidéo ou un fichier" colors={colors} disabled={busy} onPress={() => setAttachOpen(true)} />
               <Pressable disabled={busy} onPress={() => setModelsOpen(true)} accessibilityRole="button" accessibilityLabel="Choisir le modèle" style={{ minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 7 }}>
@@ -208,7 +208,7 @@ function ChatScreen({ colors: baseColors }: { colors: Colors }) {
             </View>
           </View>
         </GlowFrame>
-        <Text style={{ color: colors.muted, fontSize: 9, textAlign: 'center', marginTop: 9 }}>{`Web ${runtime.preferences.web === 'on' ? 'activé' : runtime.preferences.web === 'off' ? 'désactivé' : 'auto'} · ${attachments.length ? `${attachments.length} pièce(s) jointe(s)` : 'CKai peut se tromper.'}`}</Text>
+        <Text style={{ color: colors.muted, fontSize: 9, textAlign: 'center', marginTop: 8 }}>{`Web ${runtime.preferences.web === 'on' ? 'activé' : runtime.preferences.web === 'off' ? 'désactivé' : 'auto'} · ${attachments.length ? `${attachments.length} pièce(s) jointe(s)` : 'CKai peut se tromper.'}`}</Text>
       </View>
     </KeyboardAvoidingView>
     <VideoOverlay item={video} colors={colors} close={() => setVideo(null)} />

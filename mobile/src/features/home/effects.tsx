@@ -64,20 +64,21 @@ function RevealWord({ children, index, disabled, color }: { children:React.React
 export const HomeTitle=memo(function HomeTitle({ name,greeting,colors,disabled,fontsReady }: { name:string;greeting:string;colors:Colors;disabled:boolean;fontsReady:boolean }) {
   const {reduced}=useHomeMotion(disabled); const family=fontsReady?'CKaiHomeSans':undefined;
   const words=(greeting+',').split(' ');
-  const nameStyle:TextStyle={fontFamily:family,fontSize:30,lineHeight:40,fontWeight:'500',letterSpacing:-1};
-  return <View style={{alignItems:'center',gap:4}}>
-    <Text style={{fontFamily:family,fontSize:13,lineHeight:20,color:colors.muted,letterSpacing:.5}}>{words.map((word,index)=><RevealWord key={index} index={index} disabled={reduced} color={colors.ink}>{word+' '}</RevealWord>)}</Text>
-    <Animated.View entering={reduced?undefined:FadeInDown.delay(36).duration(420)} accessible accessibilityRole="header" accessibilityLabel={name}>
+  const nameStyle:TextStyle={fontFamily:family,fontSize:28,lineHeight:36,fontWeight:'500',letterSpacing:-1};
+  return <View style={{alignItems:'center',gap:4,width:'100%'}}>
+    <View style={{flexDirection:'row',flexWrap:'wrap',alignItems:'center',justifyContent:'center',gap:6,maxWidth:'100%'}}>
+    <Text style={{fontFamily:family,fontSize:15,lineHeight:24,color:colors.muted,letterSpacing:0}}>{words.map((word,index)=><RevealWord key={index} index={index} disabled={reduced} color={colors.ink}>{word+' '}</RevealWord>)}</Text>
+    <Animated.View entering={reduced?undefined:FadeInDown.delay(36).duration(420)} accessible accessibilityRole="header" accessibilityLabel={name} style={{maxWidth:'100%',flexShrink:1}}>
       <MaskedView maskElement={<Text style={[nameStyle,{color:'#000'}]}>{name}.</Text>}><LinearGradient colors={colors.bg === '#FAF8F4' ? ['#7751B6','#187F8A','#A14E83'] : ['#C9A8FB','#85D7E8','#E4ACD6']} start={{x:0,y:0}} end={{x:1,y:1}}><Text style={[nameStyle,{opacity:0}]}>{name}.</Text></LinearGradient></MaskedView>
-    </Animated.View>
-    <Text accessibilityRole="header" style={{fontFamily:fontsReady?'CKaiHomeSerif':'serif',fontSize:33,lineHeight:42,textAlign:'center',color:colors.ink,marginTop:8,letterSpacing:-.5}}>{['Fais','place','à','tes','idées.'].map((word,index)=><RevealWord key={word} index={index+3} disabled={reduced} color={colors.ink}>{word+' '}</RevealWord>)}</Text>
+    </Animated.View></View>
+    <Text accessibilityRole="header" style={{fontFamily:fontsReady?'CKaiHomeSerif':'serif',fontSize:30,lineHeight:40,textAlign:'center',color:colors.ink,marginTop:6,letterSpacing:-.4}}>{['Fais','place','à','tes','idées.'].map((word,index)=><RevealWord key={word} index={index+3} disabled={reduced} color={colors.ink}>{word+' '}</RevealWord>)}</Text>
   </View>;
 });
 export const GlassCard=memo(function GlassCard({ title,detail,icon,colors,index,onPrompt,prompt,disabledMotion,haptics,blurTarget,light=false }: { title:string;detail:string;icon:IconName;colors:Colors;index:number;onPrompt(value:string):void;prompt:string;disabledMotion:boolean;haptics:boolean;blurTarget:React.RefObject<React.ComponentRef<typeof View>|null>;light?:boolean }) {
   const {reduced}=useHomeMotion(disabledMotion); const scale=useSharedValue(1);const turn=useSharedValue(0);const [pressed,setPressed]=useState(false);
   useEffect(()=>{if(pressed&&!reduced)turn.value=withRepeat(withTiming(360,{duration:1800,easing:Easing.linear}),-1);else cancelAnimation(turn);return()=>cancelAnimation(turn);},[pressed,reduced,turn]);
   const style=useAnimatedStyle(()=>({transform:[{scale:scale.value}]}));const border=useAnimatedStyle(()=>({transform:[{rotate:`${turn.value}deg`}]}));
-  return <Animated.View style={[{width:'48.5%'},style]} entering={reduced?undefined:FadeInDown.delay(180+index*60).springify().damping(18).stiffness(180)}>
+  return <Animated.View style={[{width:'45%',flexGrow:1},style]} entering={reduced?undefined:FadeInDown.delay(180+index*60).springify().damping(18).stiffness(180)}>
     <Pressable accessibilityRole="button" accessibilityLabel={title} onPress={()=>onPrompt(prompt)} onPressIn={()=>{setPressed(true);if(!reduced)scale.value=withSpring(.97,spring);if(haptics)void Haptics.selectionAsync().catch(()=>{});}} onPressOut={()=>{setPressed(false);scale.value=withSpring(1,spring);}} style={{borderRadius:20,padding:1,overflow:'hidden',backgroundColor:colors.line}}>
       {pressed?<Animated.View pointerEvents="none" style={[{position:'absolute',width:280,height:280,left:'50%',top:'50%',marginLeft:-140,marginTop:-140},border]}><LinearGradient colors={tokens.gradient} style={{flex:1}} /></Animated.View>:null}
       <View style={{borderRadius:19,overflow:'hidden',minHeight:112,padding:16,backgroundColor:light?'#FFFFFFA8':'#181722AE'}}>

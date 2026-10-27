@@ -42,16 +42,13 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+          cache: gradle
+          cache-dependency-path: mobile/package.json
 
       - name: Preparer Android
         uses: android-actions/setup-android@v4
         with:
           log-accepted-android-sdk-licenses: false
-
-      - name: Cache Gradle
-        uses: gradle/actions/setup-gradle@v6
-        with:
-          cache-provider: basic
 
       - name: Tester le moteur IA
         run: npm test

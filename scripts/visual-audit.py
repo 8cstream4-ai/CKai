@@ -51,8 +51,9 @@ for i,role,text in [('a-user','user','Montre-moi une réponse bien présentée.'
     connection.execute('INSERT INTO messages(id,chatId,role,content,state,error,createdAt,rich) VALUES (?,?,?,?,?,?,?,?)',(i,'audit-format',role,text,'complete',None,1 if role=='user' else 2,'{}'))
 connection.commit()
 
-def apply(theme):
+def apply(theme, animations=None):
     settings['theme']=theme
+    if animations is not None: settings['animations']=animations
     connection.execute('UPDATE settings SET value=? WHERE id=1',(json.dumps(settings),)); connection.commit(); connection.execute('PRAGMA wal_checkpoint(TRUNCATE)')
     adb('shell','am','force-stop','app.ckai.privateassistant')
     adb('push',str(local),'/data/local/tmp/ckai-audit.db')
@@ -68,6 +69,22 @@ for width,height,theme,scale in [(720,1600,'dark','1.0'),(786,1704,'light','1.0'
     tap('Historique');tap('Audit Markdown FR');wait('Audit Markdown FR');shot(f'chat-{width//2}dp-{theme}-font{scale}.png')
 adb('shell','settings','put','system','accelerometer_rotation','0'); adb('shell','settings','put','system','user_rotation','1'); time.sleep(2);shot('chat-landscape.png');tap('Nouvelle conversation');wait('CKaiTest');shot('home-landscape.png')
 adb('shell','settings','put','system','user_rotation','0')
+if phase == 'after':
+    import PIL.Image, PIL.ImageChops
+    adb('shell','wm','size','786x1704');adb('shell','wm','density','320');adb('shell','settings','put','system','font_scale','1.0')
+    def stability(prefix):
+        time.sleep(1.2);shot(prefix+'-1.png');time.sleep(1.2);shot(prefix+'-2.png')
+        a=PIL.Image.open(out/(prefix+'-1.png')).convert('RGB');b=PIL.Image.open(out/(prefix+'-2.png')).convert('RGB')
+        region=(0,180,a.width,a.height-70);diff=PIL.ImageChops.difference(a.crop(region),b.crop(region))
+        changed=sum(1 for pixel in diff.getdata() if max(pixel)>5);ratio=changed/(diff.width*diff.height)
+        print(prefix,'changed pixels ratio',ratio)
+        assert ratio < .005, prefix+' should stop continuous decorative motion'
+        return ratio
+    apply('dark','reduced');reducedRatio=stability('home-reduced')
+    apply('dark','normal');adb('shell','dumpsys','battery','unplug');adb('shell','cmd','power','set-mode','1')
+    time.sleep(1);lowPowerRatio=stability('home-low-power')
+    (out/'motion-checks.json').write_text(json.dumps({'reducedChangedRatio':reducedRatio,'batterySaverChangedRatio':lowPowerRatio,'threshold':.005,'type':'emulator screenshot stability, not physical-device FPS'}))
+    adb('shell','cmd','power','set-mode','0');adb('shell','dumpsys','battery','reset')
 connection.close()
 (out/'evidence.json').write_text(json.dumps({'phase':phase,'synthetic':True,'sizesDp':[360,393,430],'themes':['dark','light','amoled'],'fontScales':[1,1.3],'physicalPhone':'not attached','captureUnix':time.time()},indent=2))
 print('Visual audit evidence captured:',phase)

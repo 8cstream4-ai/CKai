@@ -4,7 +4,9 @@ import Animated, { cancelAnimation, Easing, FadeInDown, interpolate, interpolate
 import { Canvas, Circle, Fill, Group, Path, Shader, Skia, SweepGradient, vec } from '@shopify/react-native-skia';
 import { useLowPowerMode } from 'expo-battery';
 import { LinearGradient } from 'expo-linear-gradient';
-import MaskedView from '@react-native-masked-view/masked-view';
+import NativeMaskedView from '@react-native-masked-view/masked-view';
+// The native module's legacy declaration predates React 19; preserve its documented props.
+const MaskedView=NativeMaskedView as unknown as React.ComponentType<import('react-native').ViewProps & {maskElement:React.ReactElement}>;
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { tokens, type Colors } from '../../theme';
@@ -29,7 +31,7 @@ export const LivingOrb = memo(function LivingOrb({ size = 148, typing = 0, disab
   useEffect(() => { frame.setActive(animated && !miniature); return () => frame.setActive(false); }, [animated,miniature,frame]);
   const uniforms=useDerivedValue(()=>({resolution:[size,size],time:clock.value,energy:pulse.value}));
   const viewStyle=useAnimatedStyle(()=>({transform:[{scale:breath.value + pulse.value*0.022}]}));
-  const ring=useMemo(()=>{const path=Skia.Path.Make(); const inset=size*0.135;path.addArc({x:inset,y:inset,width:size-inset*2,height:size-inset*2},40,280);return path;},[size]);
+  const ring=useMemo(()=>{const r=size*.365,c=size/2,a=40*Math.PI/180,b=320*Math.PI/180;return Skia.Path.MakeFromSVGString(`M ${c+r*Math.cos(a)} ${c+r*Math.sin(a)} A ${r} ${r} 0 1 1 ${c+r*Math.cos(b)} ${c+r*Math.sin(b)}`) ?? Skia.Path.Make();},[size]);
   const sparkX=useDerivedValue(()=>size/2+Math.cos(-0.69+Math.sin(clock.value*.5)*.05)*size*.365);
   const sparkY=useDerivedValue(()=>size/2+Math.sin(-0.69+Math.sin(clock.value*.5)*.05)*size*.365);
   const sparkOpacity=useDerivedValue(()=>0.65+Math.sin(clock.value*1.8)*.25);

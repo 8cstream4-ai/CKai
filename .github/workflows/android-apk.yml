@@ -101,7 +101,9 @@ jobs:
           echo 'Compilation terminee. Le test Groq est execute uniquement si le secret GROQ_API_KEY est configure. Le lancement sur un vrai telephone reste a verifier.' >> "$GITHUB_STEP_SUMMARY"
 
   smoke:
-    name: Test du lancement Android
+    name: Test Android et preuves visuelles
+    permissions:
+      contents: write
     needs: build
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -122,20 +124,34 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
+      - name: Preparer la comparaison visuelle
+        run: |
+          python -m venv /tmp/ckai-visual-env
+          /tmp/ckai-visual-env/bin/pip install --quiet 'Pillow>=11,<13'
       - name: Installer et ouvrir le vrai APK
         uses: reactivecircus/android-emulator-runner@v2
+        env:
+          PROOF_PHASE: after
         with:
           api-level: 35
           target: google_apis
           arch: x86_64
           profile: pixel_7
-          disable-animations: true
+          disable-animations: false
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
-          script: python mobile/scripts/android-smoke.py
+          script: /tmp/ckai-visual-env/bin/python scripts/visual-audit.py
+      - name: Publier les captures synthetiques pour revue
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROOF_PHASE: after
+        run: python scripts/publish-proofs.py
       - name: Conserver les captures et journaux de test
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: CKai-verification-Android-${{ github.run_number }}
-          path: artifacts/android-smoke
+          path: |
+            artifacts/android-smoke
+            artifacts/visual-proof
           retention-days: 3

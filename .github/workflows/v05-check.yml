@@ -60,8 +60,10 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
           script: |
             adb push /tmp/ckai-ui-dump.jar /data/local/tmp/ckai-ui-dump.jar
+            adb shell wm size 786x1704
+            adb shell wm density 320
             /tmp/ckai-visual-env/bin/python mobile/scripts/android-smoke.py
-            /tmp/ckai-visual-env/bin/python scripts/android-v05.py
+            /tmp/ckai-visual-env/bin/python scripts/notification-proof.py
       - name: Afficher les erreurs de lancement
         if: always()
         shell: python

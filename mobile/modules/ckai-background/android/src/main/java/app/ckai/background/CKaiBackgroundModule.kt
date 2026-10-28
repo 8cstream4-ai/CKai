@@ -29,6 +29,8 @@ class CKaiBackgroundModule : Module() {
         putExtra("jobId", jobId); putExtra("chatId", chatId); putExtra("test", isTest)
       }
       if (Build.VERSION.SDK_INT >= 26) context.startForegroundService(intent) else context.startService(intent)
+      // Expo may only serialize supported return types; Context returns ComponentName.
+      Unit
     }
     Function("update") { jobId: String, stage: String -> CKaiReplyService.update(jobId, stage.take(70)) }
     AsyncFunction("finish") { jobId: String, status: String, showNotification: Boolean ->

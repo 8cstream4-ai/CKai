@@ -6,16 +6,19 @@ on:
   workflow_dispatch:
 permissions:
   actions: read
-  contents: read
+  contents: write
 jobs:
   inspect:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
-          name: CKai-verification-Android-14
-          run-id: 40602390398
+          name: CKai-verification-Android-1
+          run-id: 40665034922
           github-token: ${{ github.token }}
           path: diagnostic
       - name: Lire les diagnostics du lancement
@@ -25,3 +28,11 @@ jobs:
           for path in Path('diagnostic').rglob('*'):
               if path.suffix in ['.txt', '.xml']:
                   print('\nFILE',path,'\n',path.read_text(errors='replace'))
+      - name: Publier les captures du diagnostic
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROOF_PHASE: after
+        run: |
+          mkdir -p artifacts/visual-proof/after
+          find diagnostic -name '*.png' -exec cp {} artifacts/visual-proof/after/ \;
+          python scripts/publish-proofs.py

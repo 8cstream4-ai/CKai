@@ -39,12 +39,12 @@ L’accueil adapte ses marges, son orbe et ses cartes aux écrans courts. Le dé
 
 ## Validation en cours
 
-- 110 tests du moteur, Markdown, outils médias et cycle de vie des tâches : réussis.
+- 113 tests du moteur, Markdown, outils médias et cycle de vie des tâches : réussis.
 - Lint, types du moteur et types natifs : réussis.
 - Compilation du module Kotlin et de son manifeste : réussie.
 - Lecture réelle de PDF, DOCX et tableurs hors ligne : réussie.
 - Vérification HTTP sans clé IA : six images pour « Monkey D. Luffy » et quatre vidéos pour « waterfall ».
-- L’APK 0.5.0 est en cours de compilation et de vérification sur émulateur. Les résultats définitifs et liens seront ajoutés après les contrôles.
+- [APK 0.5.0 compilé](https://github.com/8cstream4-ai/CKai/actions/runs/40685203281/artifacts/12815678326), package et certificat identiques à 0.4.1, versionCode 5 → 6. Les contrôles sur émulateur sont en cours ; les résultats définitifs seront ajoutés après leur exécution.
 
 Les contrôles Android prévus utilisent de vrais fichiers PNG/MP4 de démonstration, un lecteur vidéo natif et le même service/tâche Headless que la génération. Le test de notification est explicitement local : aucune réponse de fournisseur n’est simulée ni présentée comme une génération Groq réelle. Le compte de test ne contient aucune clé. L’analyse Vision réelle et une génération Groq en arrière-plan restent à vérifier sur le téléphone avec sa clé.
 

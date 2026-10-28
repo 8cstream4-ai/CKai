@@ -25,8 +25,8 @@ jobs:
           java-version: '17'
       - uses: actions/download-artifact@v4
         with:
-          name: CKai-Android-14
-          run-id: 40602390398
+          name: CKai-Android-16
+          run-id: 40666397076
           github-token: ${{ github.token }}
           path: artifacts
       - name: Activer KVM
@@ -39,13 +39,7 @@ jobs:
           python -m venv /tmp/ckai-visual-env
           /tmp/ckai-visual-env/bin/pip install --quiet 'Pillow>=11,<13'
       - name: Preparer les captures sans attente du repos
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          path=Path('mobile/scripts/CKaiDump.java')
-          path.write_text(path.read_text().replace('    Looper.prepare();',''))
-          PY
-          node mobile/scripts/prepare-ui-dump.mjs
+        run: node mobile/scripts/prepare-ui-dump.mjs
       - name: Installer et ouvrir le vrai APK
         uses: reactivecircus/android-emulator-runner@v2
         env:

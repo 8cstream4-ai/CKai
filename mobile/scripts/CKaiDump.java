@@ -1,6 +1,5 @@
 import android.app.UiAutomation;
 import android.graphics.Rect;
-import android.os.Looper;
 import android.view.accessibility.AccessibilityNodeInfo;
 import java.io.File;
 import java.lang.reflect.Method;
@@ -8,7 +7,6 @@ import java.lang.reflect.Method;
 /** Test-only accessibility snapshot without waiting for an animated screen to become idle. */
 public final class CKaiDump {
   public static void main(String[] args) throws Exception {
-    Looper.prepare();
     Class<?> type=Class.forName("com.android.uiautomator.core.UiAutomationShellWrapper");
     Object shell=type.getConstructor().newInstance();
     type.getMethod("connect").invoke(shell);

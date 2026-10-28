@@ -13,8 +13,12 @@ entries=[]
 for file in (pathlib.Path('artifacts/visual-proof')/phase).glob('*.png'):
     encoded=base64.b64encode(file.read_bytes()).decode(); content='\n'.join(encoded[i:i+100] for i in range(0,len(encoded),100))
     entries.append({'path':phase+'/'+file.name+'.b64','mode':'100644','type':'blob','content':content})
-meta=pathlib.Path('artifacts/visual-proof')/phase/'evidence.json'
-if meta.exists():entries.append({'path':phase+'/evidence.json','mode':'100644','type':'blob','content':meta.read_text()})
+for name in ['evidence.json','motion-checks.json','gfxinfo.txt']:
+    meta=pathlib.Path('artifacts/visual-proof')/phase/name
+    if meta.exists():entries.append({'path':phase+'/'+name,'mode':'100644','type':'blob','content':meta.read_text()})
+if not entries:
+    print('No synthetic screenshots were produced.')
+    raise SystemExit(0)
 tree=api('git/trees',{'tree':entries,**({'base_tree':base} if base else {})})['sha']
 commit=api('git/commits',{'message':'Synthetic visual evidence '+phase,'tree':tree,'parents':[parent] if parent else []})['sha']
 if parent:api('git/refs/heads/'+branch,{'sha':commit,'force':False},'PATCH')

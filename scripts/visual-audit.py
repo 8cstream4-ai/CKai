@@ -10,7 +10,9 @@ finally:
 adb, wait, tap = (helpers[name] for name in ['adb','wait','tap'])
 for file in pathlib.Path('artifacts/android-smoke').glob('*.png'): shutil.copyfile(file, out / file.name)
 
-def shot(name): (out / name).write_bytes(adb('exec-out','screencap','-p'))
+def shot(name):
+    if name.startswith('home-') and name != 'home-card-pressed.png': time.sleep(.8)
+    (out / name).write_bytes(adb('exec-out','screencap','-p'))
 
 def record_intro():
     adb('shell','am','force-stop','app.ckai.privateassistant')
@@ -47,7 +49,7 @@ for suffix in ['-wal']:
     if result.returncode==0 and result.stdout[:4] in [bytes.fromhex('377f0682'),bytes.fromhex('377f0683')]: pathlib.Path(str(local)+suffix).write_bytes(result.stdout)
 connection=sqlite3.connect(local)
 row=connection.execute('SELECT value FROM settings WHERE id=1').fetchone(); settings=json.loads(row[0])
-connection.execute('DELETE FROM messages'); connection.execute('DELETE FROM conversations')
+connection.execute('DELETE FROM messages'); connection.execute('DELETE FROM conversations'); connection.execute('DELETE FROM drafts')
 connection.execute('INSERT INTO conversations(id,title,updatedAt) VALUES (?,?,?)',('audit-format','Audit Markdown FR',1))
 answer='Voici *un passage en italique* et ** un mot important **.\n\n~~Texte retiré~~.\n\n| Modèle | Usage |\n|---|---|\n| Rapide | Quotidien |\n\n- **Clair** : lisible\n- *Fluide* : naturel'
 for i,role,text in [('a-user','user','Montre-moi une réponse bien présentée.'),('a-ai','assistant',answer)]:

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Stack, type ErrorBoundaryProps } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Text, View } from 'react-native';
 import { DocumentReaderProvider } from '../src/features/documents';
@@ -16,7 +17,7 @@ export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
   </View>;
 }
 export default function Layout() {
-  return <GestureHandlerRootView style={{ flex: 1 }}><SafeAreaProvider><DocumentReaderProvider><RuntimeProvider>
+  return <GestureHandlerRootView style={{ flex: 1 }}><SafeAreaProvider><KeyboardProvider preload={false}><DocumentReaderProvider><RuntimeProvider>
     <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }} />
-  </RuntimeProvider></DocumentReaderProvider></SafeAreaProvider></GestureHandlerRootView>;
+  </RuntimeProvider></DocumentReaderProvider></KeyboardProvider></SafeAreaProvider></GestureHandlerRootView>;
 }

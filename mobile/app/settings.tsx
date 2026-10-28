@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, Switch, Text, TextInput, View } from 'react-native';
+import { Alert, Linking, Platform, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRuntime } from '../src/runtime';
 import { colorsFor, tokens } from '../src/theme';
@@ -12,10 +13,11 @@ export default function Settings() {
   const runtime = useRuntime(); const colors = colorsFor(runtime.preferences.theme); const insets = useSafeAreaInsets();
   const [name, setName] = useState(runtime.preferences.name); const [apiKey, setApiKey] = useState('');
   const [tavily, setTavily] = useState(''); const [visionModel, setVisionModel] = useState(runtime.preferences.visionModel); const [instructions, setInstructions] = useState(runtime.preferences.instructions);
+  const [notificationTest, setNotificationTest] = useState(false); const [notificationStatus, setNotificationStatus] = useState('');
   const [working, setWorking] = useState(false); const [result, setResult] = useState('');
   const failed = () => Alert.alert('Réglage non enregistré', 'Réessaie et vérifie l’espace de stockage.');
   const inputStyle = { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, borderRadius: 15, padding: 15, fontSize: 16, color: colors.ink };
-  return <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
+  return <KeyboardAvoidingView behavior="padding" automaticOffset style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
     <View style={{ height: 62, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8 }}><IconButton name="arrow-back-outline" label="Retour au chat" colors={colors} onPress={() => router.back()} /><Text style={{ color: colors.ink, fontSize: 16, marginLeft: 10 }}>Réglages</Text></View>
     <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 24, paddingBottom: insets.bottom + 40 }}>
       <Logo size={48} /><Text accessibilityRole="header" style={{ color: colors.ink, fontFamily: tokens.font.answer, fontSize: 32, marginTop: 25, marginBottom: 10 }}>Ton espace, tes choix.</Text>
@@ -23,6 +25,14 @@ export default function Settings() {
       <Text style={{ color: colors.ink, fontSize: 13, marginBottom: 12 }}>Prénom ou pseudo</Text>
       <TextInput value={name} onChangeText={setName} maxLength={40} accessibilityLabel="Prénom ou pseudo" style={inputStyle} />
       <View style={{ marginTop: 12 }}><PrimaryButton title="Enregistrer le prénom" colors={colors} disabled={!name.trim()} onPress={() => { void runtime.setPreferences({ name: name.trim() }).then(() => Alert.alert('Profil', 'Prénom enregistré.')).catch(failed); }} /></View>
+      <Text style={{ color: colors.muted, fontSize: 11, letterSpacing: 2, marginTop: 28, marginBottom: 16 }}>RÉPONSES EN ARRIÈRE-PLAN</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><View style={{ flex: 1 }}><Text style={{ color: colors.ink, fontSize: 15, lineHeight: 22 }}>Continuer quand je change d’application</Text><Text style={{ color: colors.muted, fontSize: 12, lineHeight: 20, marginTop: 8 }}>Une notification te permet d’arrêter la réponse et d’ouvrir le chat lorsqu’elle est prête.</Text></View><Switch accessibilityLabel="Réponses en arrière-plan" value={runtime.preferences.backgroundResponses} onValueChange={backgroundResponses => { void runtime.setPreferences({ backgroundResponses }).catch(failed); }} trackColor={{ true: colors.accent }} /></View>
+      <View style={{ marginTop: 16 }}><PrimaryButton title={notificationTest ? 'Test en cours…' : 'Tester les notifications'} disabled={notificationTest || runtime.busy} colors={colors} onPress={() => {
+        setNotificationTest(true); setNotificationStatus('Le test dure 10 secondes. Tu peux passer dans une autre application.');
+        void runtime.testNotifications().then(() => setNotificationStatus('Test terminé. Une notification autorisée ouvre la conversation.')).catch(error => setNotificationStatus(error instanceof Error ? error.message : 'Le test n’a pas pu démarrer.')).finally(() => setNotificationTest(false));
+      }} /></View>
+      {notificationStatus ? <Text accessibilityLiveRegion="polite" style={{ color: colors.muted, fontSize: 12, lineHeight: 20, marginTop: 12 }}>{notificationStatus}</Text> : null}
+      <View style={{ marginTop: 12 }}><PrimaryButton title="Réglages Android des notifications" colors={colors} onPress={() => { void Linking.openSettings().catch(() => Alert.alert('Android', 'Les réglages Android ne sont pas disponibles.')); }} /></View>
       <Text style={{ color: colors.muted, fontSize: 11, letterSpacing: 2, marginTop: 35, marginBottom: 16 }}>APPARENCE</Text>
       {(['dark', 'light', 'amoled'] as Preferences['theme'][]).map(theme => <Choice key={theme} title={{ dark: 'Sombre', light: 'Crème', amoled: 'AMOLED' }[theme]} selected={runtime.preferences.theme === theme} colors={colors} onPress={() => { void runtime.setPreferences({ theme }).catch(failed); }} />)}
       <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10, marginBottom: 15 }}><Text style={{ color: colors.ink, flex: 1, fontSize: 14 }}>Retour haptique</Text><Switch accessibilityLabel="Retour haptique" value={runtime.preferences.haptics} onValueChange={haptics => { void runtime.setPreferences({ haptics }).catch(failed); }} trackColor={{ true: colors.accent }} /></View>

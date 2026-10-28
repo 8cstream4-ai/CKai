@@ -1,6 +1,7 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Share, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, Alert, Keyboard, Modal, Platform, Pressable, ScrollView, Share, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList, type FlashListRef } from '@shopify/flash-list';
@@ -11,7 +12,7 @@ import * as Speech from 'expo-speech';
 import { Image } from 'expo-image';
 import { useDocumentReader } from '../src/features/documents';
 import { importAttachment, type Attachment } from '../src/features/attachments';
-import { Attachments, Gallery, Sources, VideoOverlay, WeatherCard } from '../src/features/rich-ui';
+import { Attachments, Gallery, Videos, Sources, VideoOverlay, WeatherCard } from '../src/features/rich-ui';
 import { BlurTargetView } from 'expo-blur';
 import { HomeScene, homeColors } from '../src/features/home/scene';
 import { HomeAtmosphere, LivingOrb, SendControl } from '../src/features/home/effects';
@@ -54,11 +55,13 @@ const MessageRow = memo(function MessageRow({ message, colors, latest, busy, onR
   </View></Entrance>;
   return <View style={{ marginBottom: 26 }}>
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 15 }}><Logo size={25} /><Text style={{ color: colors.ink, fontSize: 12, fontWeight: '600' }}>CKai</Text></View>
+    {message.rich?.images?.length ? <Gallery items={message.rich.images} colors={colors} /> : null}
+    {message.rich?.videos?.length ? <Videos items={message.rich.videos} colors={colors} onPlay={onPlay} /> : null}
     <Markdown content={message.content} colors={colors} sources={message.rich?.sources} active={animate && message.state === 'streaming'} />
     {message.rich?.weather ? <WeatherCard data={message.rich.weather} colors={colors} /> : null}
-    {message.rich?.images?.length ? <Gallery items={message.rich.images} colors={colors} /> : null}
     {message.rich?.attachments?.length ? <Attachments items={message.rich.attachments} colors={colors} onPlay={onPlay} /> : null}
     <Sources sources={message.rich?.sources ?? []} colors={colors} />
+    {message.rich?.backgroundWarning ? <Text style={{ color: colors.muted, fontSize: 12, lineHeight: 19, marginTop: 12 }}>{message.rich.backgroundWarning}</Text> : null}
     {!message.content && message.state === 'streaming' ? <ActivityIndicator color={colors.accent} style={{ alignSelf: 'flex-start', marginVertical: 10 }} /> : null}
     {message.error || message.state === 'interrupted' ? <View style={{ backgroundColor: colors.surface, padding: 14, marginTop: 14, borderRadius: 14, borderWidth: 1, borderColor: colors.line }}><Text accessibilityLiveRegion="polite" style={{ color: colors.muted, fontSize: 13, lineHeight: 21 }}>{message.error || 'La génération a été interrompue à la fermeture de l’application. Tu peux réessayer.'}</Text></View> : null}
     {message.state === 'stopped' ? <Text style={{ color: colors.muted, fontSize: 11, marginTop: 12 }}>Réponse arrêtée · texte conservé</Text> : null}
@@ -71,7 +74,7 @@ const MessageRow = memo(function MessageRow({ message, colors, latest, busy, onR
 
 function Profile({ colors }: { colors: Colors }) {
   const runtime = useRuntime(); const [name, setName] = useState(''); const [saving, setSaving] = useState(false);
-  return <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: colors.bg, padding: 30, justifyContent: 'center' }}>
+  return <KeyboardAvoidingView behavior="padding" automaticOffset style={{ flex: 1, backgroundColor: colors.bg, padding: 30, justifyContent: 'center' }}>
     <Entrance delay={80}><Logo size={76} /></Entrance><Text style={{ color: colors.muted, fontSize: 10, letterSpacing: 3, marginTop: 35 }}>BIENVENUE CHEZ CKAI</Text>
     <Text accessibilityRole="header" style={{ color: colors.ink, fontFamily: tokens.font.answer, fontSize: 38, lineHeight: 46, marginTop: 14 }}>Un espace pour{ '\n' }tes idées.</Text>
     <Text style={{ color: colors.muted, fontSize: 14, lineHeight: 24, marginTop: 18, marginBottom: 32 }}>Tes conversations restent sur cet appareil. Tes messages sont envoyés à Groq pour obtenir une réponse.</Text>
@@ -149,6 +152,7 @@ function ChatScreen({ colors: baseColors }: { colors: Colors }) {
         if (result.canceled) return;
         assets = result.assets.map(asset => ({ uri: asset.uri, name: asset.fileName || `import-${Date.now()}.${asset.type === 'video' ? 'mp4' : 'jpg'}`, mime: asset.mimeType || (asset.type === 'video' ? 'video/mp4' : 'image/jpeg'), size: asset.fileSize, duration: asset.duration ?? undefined }));
       }
+      if (assets.length > 3 - attachments.length) Alert.alert('Pièces jointes', 'Seuls les fichiers disponibles dans la limite de trois seront importés.');
       const added: Attachment[] = [];
       for (const asset of assets.slice(0, 3 - attachments.length)) {
         setImporting(asset.name);
@@ -172,7 +176,7 @@ function ChatScreen({ colors: baseColors }: { colors: Colors }) {
       {isHome?<View style={{flex:1,alignItems:'center'}} accessible accessibilityLabel="CKai, accueil"><LivingOrb size={40} miniature disabled={!animate} /></View>:<Text numberOfLines={1} style={{ color: colors.ink, flex: 1, textAlign: 'center', fontSize: 14, fontWeight: '500', paddingHorizontal: 12 }}>{runtime.current?.title || 'CKai'}</Text>}
       <IconButton name="create-outline" label="Nouvelle conversation" disabled={busy} colors={colors} onPress={() => { void runtime.openChat(null); }} />
     </View>
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding" automaticOffset>
       <View style={{ flex: 1 }}>
         <FlashList ref={list} data={runtime.messages} keyExtractor={message => message.id} getItemType={message => message.role}
           keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 12, paddingBottom: 12 }}

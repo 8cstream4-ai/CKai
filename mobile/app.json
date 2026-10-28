@@ -29,15 +29,16 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Choisir les photos et vid\u00e9os \u00e0 analyser dans CKai.",
-          "cameraPermission": "Photographier un document ou une sc\u00e8ne pour CKai.",
+          "photosPermission": "Choisir les photos et vidéos à analyser dans CKai.",
+          "cameraPermission": "Photographier un document ou une scène pour CKai.",
           "microphonePermission": false
         }
       ],
       [
         "expo-video",
         {
-          "supportsPictureInPicture": true
+          "supportsPictureInPicture": true,
+          "supportsBackgroundPlayback": false
         }
       ]
     ]

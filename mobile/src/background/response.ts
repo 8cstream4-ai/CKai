@@ -19,6 +19,7 @@ AppRegistry.registerHeadlessTask('CKaiReplyKeepAlive', () => async (data: { jobI
   // Never replay a request after a process death: an unknown job ends immediately.
   if (data.jobId) await jobs.wait(data.jobId);
 });
+export function backgroundNotificationsAllowed(): boolean { try { return native?.canNotify() ?? false; } catch { return false; } }
 export interface BackgroundHandle { job: BackgroundJob; lastStage: string; lastUpdate: number; }
 export async function ensureNotificationPermission(explicit = false): Promise<boolean> {
   if (!native) return false;
@@ -69,6 +70,7 @@ export async function finishBackgroundResponse(handle: BackgroundHandle | null, 
 }
 export async function testBackgroundNotifications(chatId = ''): Promise<void> {
   if (jobs.size) throw new Error('Attends la fin de la réponse en cours.');
+  if (!await ensureNotificationPermission(true)) throw new Error('Autorise les notifications dans les réglages Android, puis réessaie.');
   const controller = new AbortController();
   const handle = await beginBackgroundResponse('notification-test-' + randomUUID(), chatId, controller, true);
   if (!handle) throw new Error('Cette fonction nécessite le nouvel APK Android.');

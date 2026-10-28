@@ -13,8 +13,9 @@ export interface Preferences {
   visionModel: string;
   instructions: string;
   memory: boolean;
+  backgroundResponses: boolean;
 }
-export const defaults: Preferences = { name: '', theme: 'dark', level: 'fort', effort: 'moyenne', haptics: true, animations: 'normal', web: 'auto', visionModel: 'qwen/qwen3.8-27b', instructions: '', memory: true };
+export const defaults: Preferences = { name: '', theme: 'dark', level: 'fort', effort: 'moyenne', haptics: true, animations: 'normal', web: 'auto', visionModel: 'qwen/qwen3.8-27b', instructions: '', memory: true, backgroundResponses: true };
 export interface Chat { id: string; title: string; updatedAt: number; }
 export interface StoredMessage {
   id: string; chatId: string; role: 'user' | 'assistant'; content: string;
@@ -61,6 +62,7 @@ export async function loadPreferences(): Promise<Preferences> {
       visionModel: typeof value.visionModel === 'string' && value.visionModel.trim() ? value.visionModel.trim().slice(0, 150) : defaults.visionModel,
       instructions: typeof value.instructions === 'string' ? value.instructions.slice(0, 6000) : '',
       memory: typeof value.memory === 'boolean' ? value.memory : true,
+      backgroundResponses: typeof value.backgroundResponses === 'boolean' ? value.backgroundResponses : true,
     };
   } catch { return { ...defaults }; }
 }

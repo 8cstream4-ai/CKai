@@ -6,10 +6,11 @@ import { fetch as expoFetch } from 'expo/fetch';
 import { boundedText } from '../../../src/ai/research.ts';
 export interface Attachment {
   id: string; kind: 'image' | 'video' | 'document' | 'file'; name: string; uri: string; mime: string; size: number;
+  source?: string; credit?: string; license?: string;
   textUri?: string; preview?: string; frames?: string[]; duration?: number; note?: string;
 }
-export interface GalleryImage { url: string; source: string; title: string; credit: string; license: string; }
-export interface RichMessage { attachments?: Attachment[]; sources?: import('../../../src/ai/research.ts').Source[]; images?: GalleryImage[]; research?: string; analysis?: string; weather?: Record<string, unknown>; durationMs?: number; }
+export type GalleryImage = import('../../../src/ai/media.ts').MediaImage;
+export interface RichMessage { attachments?: Attachment[]; sources?: import('../../../src/ai/research.ts').Source[]; images?: GalleryImage[]; videos?: import('../../../src/ai/media.ts').MediaVideo[]; backgroundWarning?: string; research?: string; analysis?: string; weather?: Record<string, unknown>; durationMs?: number; }
 export function dataDirectory() { const dir = new Directory(Paths.document, 'ckai-files'); dir.create({ intermediates: true, idempotent: true }); return dir; }
 export function keepFile(uri: string, name: string) { const file = new File(dataDirectory(), `${randomUUID()}-${name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-100)}`); new File(uri).copy(file); return file; }
 async function picture(source: Parameters<typeof ImageManipulator.manipulate>[0]) {

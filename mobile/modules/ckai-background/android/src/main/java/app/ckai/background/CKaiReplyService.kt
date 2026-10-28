@@ -71,7 +71,7 @@ class CKaiReplyService : HeadlessJsTaskService() {
   override fun getTaskConfig(intent: Intent?): HeadlessJsTaskConfig? {
     if (intent?.action != START) return null
     val data = Arguments.createMap().apply { putString("jobId", intent.getStringExtra("jobId")) }
-    return HeadlessJsTaskConfig("CKaiReplyKeepAlive", data, 0, true)
+    return HeadlessJsTaskConfig("CKaiReplyKeepAlive", data, 610_000, true)
   }
   override fun onTimeout(startId: Int, fgsType: Int) {
     onStopRequest?.invoke(jobId, "timeout")

@@ -2,7 +2,7 @@
   "name": "ckai-mobile",
   "version": "0.4.1",
   "private": true,
-  "main": "expo-router/entry",
+  "main": "index.ts",
   "engines": {
     "node": ">=24"
   },

@@ -1,0 +1,27 @@
+name: CKai - Diagnostic lancement
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/home-diagnostics.yml']
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: CKai-verification-Android-14
+          run-id: 40602390398
+          github-token: ${{ github.token }}
+          path: diagnostic
+      - name: Lire les diagnostics du lancement
+        shell: python
+        run: |
+          from pathlib import Path
+          for path in Path('diagnostic').rglob('*'):
+              if path.suffix in ['.txt', '.xml']:
+                  print('\nFILE',path,'\n',path.read_text(errors='replace'))

@@ -1,4 +1,4 @@
-# CKai 0.5.0 — réponses en arrière-plan et médias
+# CKai 0.5.1 — réponses en arrière-plan et médias
 
 La version 0.4.1 de l’accueil reste disponible dans [son rapport](accueil-04.md). Cette livraison ajoute les fonctions demandées ensuite : continuer une réponse en changeant d’application, recevoir sa notification et retrouver de vrais médias dans le chat.
 
@@ -44,7 +44,8 @@ L’accueil adapte ses marges, son orbe et ses cartes aux écrans courts. Le dé
 - Compilation du module Kotlin et de son manifeste : réussie.
 - Lecture réelle de PDF, DOCX et tableurs hors ligne : réussie.
 - Vérification HTTP sans clé IA : six images pour « Monkey D. Luffy » et quatre vidéos pour « waterfall ».
-- [APK 0.5.0 compilé](https://github.com/8cstream4-ai/CKai/actions/runs/40685203281/artifacts/12815678326), package et certificat identiques à 0.4.1, versionCode 5 → 6. Les contrôles sur émulateur sont en cours ; les résultats définitifs seront ajoutés après leur exécution.
+- APK 0.5.0 exécuté : lancement, profil persistant, thèmes, Markdown, photo importée/plein écran, vidéo importée/lecture et clavier validés. Stabilité des décors : 0 pixel modifié en mode réduit et économie d’énergie.
+- Le contrôle des notifications a trouvé un bug réel : `startForegroundService()` renvoyait `ComponentName`, non sérialisable par Expo. Le module retourne maintenant `Unit`. L’APK corrigé 0.5.1 est en compilation ; le premier APK 0.5.0 ne doit pas servir à valider l’arrière-plan.
 
 Les contrôles Android prévus utilisent de vrais fichiers PNG/MP4 de démonstration, un lecteur vidéo natif et le même service/tâche Headless que la génération. Le test de notification est explicitement local : aucune réponse de fournisseur n’est simulée ni présentée comme une génération Groq réelle. Le compte de test ne contient aucune clé. L’analyse Vision réelle et une génération Groq en arrière-plan restent à vérifier sur le téléphone avec sa clé.
 

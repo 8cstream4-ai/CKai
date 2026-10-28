@@ -8,7 +8,7 @@ La suite comporte 113 tests automatisés, dont 50 fixtures Markdown françaises 
 
 ## Télécharger le test Android
 
-Pour la version actuelle : [télécharger le ZIP APK 0.5.0](https://github.com/8cstream4-ai/CKai/actions/runs/40685203281/artifacts/12815678326). La signature et le package sont identiques à la version 0.4.1, avec un code de version supérieur : installer la mise à jour sans désinstaller pour garder les données locales. Pour un nouveau build, ouvrir **Actions → CKai - APK Android** et télécharger l’artefact `CKai-Android-…` après une compilation réussie. Extraire le ZIP et installer `CKai-test.apk`. Cet APK de test embarque le JavaScript et ne nécessite pas Expo Go.
+La version 0.5.1 est en cours de compilation. Le test réel 0.5.0 a validé les médias et le clavier, mais a trouvé un retour natif incompatible au démarrage des notifications ; cette erreur est corrigée dans 0.5.1. Attendre le lien 0.5.1 du rapport avant de tester l’arrière-plan. Pour un nouveau build, ouvrir **Actions → CKai - APK Android** et télécharger l’artefact `CKai-Android-…` après une compilation réussie. Extraire le ZIP et installer `CKai-test.apk` sans désinstaller l’application existante.
 
 Groq est intégré. Sans clé fournie au build, ajouter sa clé dans les réglages de l’application. Pour préconfigurer un build personnel, définir le secret Actions `GROQ_API_KEY`. Une clé intégrée à un APK reste extractible : conserver le dépôt et les artefacts privés pour ce mode.
 

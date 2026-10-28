@@ -1,0 +1,90 @@
+name: CKai - Controle accueil APK existant
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/home-check.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  smoke:
+    name: Test Android et preuves visuelles
+    permissions:
+      contents: write
+      actions: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/download-artifact@v4
+        with:
+          name: CKai-Android-14
+          run-id: 40602390398
+          github-token: ${{ github.token }}
+          path: artifacts
+      - name: Activer KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Preparer la comparaison visuelle
+        run: |
+          python -m venv /tmp/ckai-visual-env
+          /tmp/ckai-visual-env/bin/pip install --quiet 'Pillow>=11,<13'
+      - name: Installer et ouvrir le vrai APK
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          PROOF_PHASE: after
+        with:
+          api-level: 35
+          target: default
+          arch: x86_64
+          profile: pixel_7
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
+          script: /tmp/ckai-visual-env/bin/python scripts/visual-audit.py
+      - name: Afficher les diagnostics Android
+        if: always()
+        shell: python
+        run: |
+          from pathlib import Path
+          for name in ['app-logcat.txt','last-ui.xml']:
+              path=Path('artifacts/android-smoke')/name
+              if path.exists(): print(name,path.read_text(errors='replace'))
+      - name: Publier les captures synthetiques pour revue
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROOF_PHASE: after
+        run: python scripts/publish-proofs.py
+      - name: Conserver les captures et journaux de test
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CKai-verification-Android-${{ github.run_number }}
+          path: |
+            artifacts/android-smoke
+            artifacts/visual-proof
+          retention-days: 3
+      - name: Recuperer les captures avant
+        if: success()
+        uses: actions/download-artifact@v4
+        with:
+          name: CKai-V2-avant
+          run-id: 40601088078
+          github-token: ${{ github.token }}
+          path: artifacts/visual-proof
+      - name: Reunir les preuves avant et apres
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CKai-Accueil-Avant-Apres
+          path: artifacts/visual-proof
+          retention-days: 7

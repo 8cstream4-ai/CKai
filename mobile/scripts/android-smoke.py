@@ -19,7 +19,15 @@ def wait(text, seconds=50):
     while time.monotonic() < end:
         try:
             root = dump()
-            for node in root.iter('node'):
+            nodes=list(root.iter('node'))
+            if any("Pixel Launcher isn't responding" in label(node) for node in nodes):
+                close=next((node for node in nodes if node.attrib.get('resource-id')=='android:id/aerr_close'),None)
+                if close is not None:
+                    coords=list(map(int,re.findall(r'\d+',close.attrib['bounds'])))
+                    adb('shell','input','tap',str((coords[0]+coords[2])//2),str((coords[1]+coords[3])//2))
+                    adb('shell','am','start','-W','-n','app.ckai.privateassistant/.MainActivity')
+                    continue
+            for node in nodes:
                 if text.casefold() in label(node).casefold(): return node
         except (subprocess.SubprocessError, ET.ParseError): pass
         time.sleep(1)
@@ -48,4 +56,6 @@ try:
     adb('shell', 'am', 'start', '-W', '-n', 'app.ckai.privateassistant/.MainActivity')
     wait('CKaiTest'); print('APK : lancement, profil persistant, accueil, imports et réglages OK.')
 finally:
+    screenshot('99-fin.png')
+    (out / 'app-logcat.txt').write_bytes(adb('logcat', '-d', '-s', 'ReactNativeJS:V', 'AndroidRuntime:V', 'libc:F', '*:S'))
     (out / 'logcat.txt').write_bytes(adb('logcat', '-d', '-t', '600'))

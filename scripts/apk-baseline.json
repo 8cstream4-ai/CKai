@@ -1,0 +1,7 @@
+{
+  "certificate": "fac61745dc0903786fb9ede62a962b399f7348f0bb6f899b8332667591033b9c",
+  "package": "app.ckai.privateassistant",
+  "version": 5,
+  "sourceRun": 40666397076,
+  "note": "Public signing certificate digest verified with Android Build Tools 37.0.0 on APK 0.4.1; this is not a private signing key."
+}

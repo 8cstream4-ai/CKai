@@ -21,6 +21,8 @@ concurrency:
 
 jobs:
   build:
+    outputs:
+      apk_ready: ${{ steps.apk.outcome }}
     if: github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, '[phase-only]')
     runs-on: ubuntu-24.04
     timeout-minutes: 60
@@ -87,22 +89,16 @@ jobs:
         working-directory: mobile
         run: npm run apk
 
-      - name: Recuperer la version precedente pour verifier la mise a jour
-        uses: actions/download-artifact@v4
-        with:
-          name: CKai-Android-16
-          run-id: 40666397076
-          github-token: ${{ github.token }}
-          path: artifacts/upgrade-baseline
-      - name: Verifier la signature et la compatibilite de mise a jour
-        run: node scripts/verify-apk-upgrade.mjs
       - name: Conserver l'APK de test
+        id: apk
         uses: actions/upload-artifact@v4
         with:
           name: CKai-Android-${{ github.run_number }}
           path: artifacts/CKai-test.apk
           if-no-files-found: error
-          retention-days: 3
+          retention-days: 7
+      - name: Verifier la signature et la compatibilite de mise a jour
+        run: node scripts/verify-apk-upgrade.mjs
 
       - name: Indiquer le resultat
         run: |
@@ -111,6 +107,7 @@ jobs:
           echo 'Compilation terminee. Le test Groq est execute uniquement si le secret GROQ_API_KEY est configure. Le lancement sur un vrai telephone reste a verifier.' >> "$GITHUB_STEP_SUMMARY"
 
   smoke:
+    if: ${{ always() && needs.build.outputs.apk_ready == 'success' }}
     name: Test Android et preuves visuelles
     permissions:
       contents: write

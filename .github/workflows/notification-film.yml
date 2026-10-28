@@ -1,0 +1,38 @@
+name: CKai - Images du film Android
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/notification-film.yml']
+permissions:
+  contents: write
+  actions: read
+jobs:
+  frames:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: CKai-verification-Android-30
+          run-id: 40690635044
+          github-token: ${{ github.token }}
+          path: evidence
+      - name: Extraire le film reel sans reconstruire ni rejouer le test
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          mkdir -p artifacts/visual-proof/after
+          ffmpeg -loglevel error -i evidence/v05-proof/background.mp4 -vf 'fps=1/3,scale=280:-1,tile=4x3' -frames:v 1 artifacts/visual-proof/after/notification-film-contact.png
+          ffmpeg -loglevel error -i evidence/v05-proof/background.mp4 -vf 'fps=1/3' artifacts/visual-proof/after/notification-film-%02d.png
+      - name: Publier les images du film synthetique
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROOF_PHASE: after
+        run: python scripts/publish-proofs.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CKai-Notifications-images-du-film
+          path: artifacts/visual-proof/after
+          retention-days: 7

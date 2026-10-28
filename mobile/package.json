@@ -1,6 +1,6 @@
 {
   "name": "ckai-mobile",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "private": true,
   "main": "expo-router/entry",
   "engines": {
@@ -32,8 +32,8 @@
     "remend": "^1.4.0",
     "highlight.js": "^11.11.1",
     "katex": "^0.16.25",
-    "@expo-google-fonts/inter": "^0.4.0",
-    "@expo-google-fonts/newsreader": "^0.4.0"
+    "@expo-google-fonts/inter": "^0.4.1",
+    "@expo-google-fonts/newsreader": "^0.4.1"
   },
   "devDependencies": {
     "typescript": "~6.0.3",

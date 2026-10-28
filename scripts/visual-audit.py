@@ -3,7 +3,10 @@ import base64, json, os, pathlib, runpy, shutil, sqlite3, subprocess, time
 phase = os.environ.get('PROOF_PHASE', 'before')
 out = pathlib.Path('artifacts/visual-proof') / phase
 out.mkdir(parents=True, exist_ok=True)
-helpers = runpy.run_path('mobile/scripts/android-smoke.py')
+try:
+    helpers = runpy.run_path('mobile/scripts/android-smoke.py')
+finally:
+    for captured in pathlib.Path('artifacts/android-smoke').glob('*.png'): shutil.copyfile(captured,out/captured.name)
 adb, wait, tap = (helpers[name] for name in ['adb','wait','tap'])
 for file in pathlib.Path('artifacts/android-smoke').glob('*.png'): shutil.copyfile(file, out / file.name)
 

@@ -128,18 +128,29 @@ jobs:
         run: |
           python -m venv /tmp/ckai-visual-env
           /tmp/ckai-visual-env/bin/pip install --quiet 'Pillow>=11,<13'
+      - name: Preparer les captures sans attente du repos
+        run: node mobile/scripts/prepare-ui-dump.mjs
       - name: Installer et ouvrir le vrai APK
         uses: reactivecircus/android-emulator-runner@v2
         env:
           PROOF_PHASE: after
         with:
           api-level: 35
-          target: google_apis
+          target: default
           arch: x86_64
           profile: pixel_7
           disable-animations: false
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
-          script: /tmp/ckai-visual-env/bin/python scripts/visual-audit.py
+          script: |
+            adb push /tmp/ckai-ui-dump.jar /data/local/tmp/ckai-ui-dump.jar
+            /tmp/ckai-visual-env/bin/python scripts/visual-audit.py
+      - name: Afficher les erreurs de lancement
+        if: always()
+        shell: python
+        run: |
+          from pathlib import Path
+          path=Path('artifacts/android-smoke/app-logcat.txt')
+          if path.exists(): print(path.read_text(errors='replace'))
       - name: Publier les captures synthetiques pour revue
         if: always()
         env:

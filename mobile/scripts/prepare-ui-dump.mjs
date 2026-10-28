@@ -1,0 +1,12 @@
+import { spawnSync } from 'node:child_process';
+import { readdir, mkdir } from 'node:fs/promises';
+import { resolve, join } from 'node:path';
+const sdk=process.env.ANDROID_SDK_ROOT||process.env.ANDROID_HOME;
+if(!sdk)throw new Error('Android SDK required for the test-only accessibility helper');
+const latest=async directory=>(await readdir(directory)).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true})).at(-1);
+const platform=await latest(join(sdk,'platforms'));const tools=await latest(join(sdk,'build-tools'));
+const androidJar=join(sdk,'platforms',platform,'android.jar');const output='/tmp/ckai-ui-dump';
+await mkdir(output,{recursive:true});
+const run=(file,args)=>{const result=spawnSync(file,args,{stdio:'inherit'});if(result.status!==0)throw new Error(file+' failed');};
+run('javac',['-source','8','-target','8','-cp',androidJar,'-d',output,resolve('mobile/scripts/CKaiDump.java')]);
+run(join(sdk,'build-tools',tools,'d8'),['--lib',androidJar,'--output','/tmp/ckai-ui-dump.jar',join(output,'CKaiDump.class')]);

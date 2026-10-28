@@ -11,7 +11,7 @@ half4 main(float2 xy) {
   float z = sqrt(max(0.0, 1.0 - radius * radius / 0.42));
   float3 normal = normalize(float3(p * 1.45, z));
   float diffuse = max(0.0, dot(normal, normalize(float3(-0.5, -0.7, 1.1))));
-  float bands = sin(angle * 1.4 + radius * 8.0 - time * 0.55 + sin(p.y * 5.0 + time * 0.3) * 0.7);
+  float bands = sin(angle * 2.0 + radius * 8.0 - time * 0.55 + sin(p.y * 5.0 + time * 0.3) * 0.7);
   float3 violet = float3(0.56, 0.32, 0.94);
   float3 cyan = float3(0.22, 0.85, 0.95);
   float3 pink = float3(0.96, 0.52, 0.76);

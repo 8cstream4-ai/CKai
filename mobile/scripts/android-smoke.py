@@ -6,7 +6,11 @@ def adb(*args, timeout=25):
     return subprocess.run(['adb', *args], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout).stdout
 
 def dump():
-    adb('shell', 'uiautomator', 'dump', '/sdcard/ckai-ui.xml')
+    adb('shell','rm','-f','/sdcard/ckai-ui.xml')
+    if pathlib.Path('/tmp/ckai-ui-dump.jar').exists():
+        adb('shell','CLASSPATH=/system/framework/uiautomator.jar:/data/local/tmp/ckai-ui-dump.jar','app_process','/system/bin','CKaiDump','/sdcard/ckai-ui.xml')
+    else:
+        adb('shell', 'uiautomator', 'dump', '/sdcard/ckai-ui.xml')
     raw = adb('exec-out', 'cat', '/sdcard/ckai-ui.xml').decode('utf8')
     (out / 'last-ui.xml').write_text(raw)
     return ET.fromstring(raw)
@@ -48,7 +52,7 @@ try:
     adb('shell', 'am', 'start', '-W', '-n', 'app.ckai.privateassistant/.MainActivity')
     wait('Prénom ou pseudo'); screenshot('01-profil.png')
     tap('Prénom ou pseudo'); adb('shell', 'input', 'text', 'CKaiTest'); adb('shell', 'input', 'keyevent', '4')
-    tap('Entrer dans CKai'); wait('CKaiTest'); screenshot('02-accueil.png')
+    tap('Entrer dans CKai'); wait('Historique'); wait('CKaiTest'); screenshot('02-accueil.png')
     tap('Joindre une photo, une vidéo ou un fichier'); wait('Donne du contexte'); wait('DOCX'); screenshot('03-imports.png')
     adb('shell', 'input', 'keyevent', '4')
     tap('Historique'); tap('Profil et réglages'); wait('Réglages'); screenshot('04-reglages.png')

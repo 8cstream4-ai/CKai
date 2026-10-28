@@ -83,6 +83,7 @@ export const GlassCard=memo(function GlassCard({ title,detail,icon,colors,index,
       {pressed?<Animated.View pointerEvents="none" style={[{position:'absolute',width:280,height:280,left:'50%',top:'50%',marginLeft:-140,marginTop:-140},border]}><LinearGradient colors={tokens.gradient} style={{flex:1}} /></Animated.View>:null}
       <View style={{borderRadius:19,overflow:'hidden',minHeight:112,padding:16,backgroundColor:light?'#FFFFFFA8':'#181722AE'}}>
         <BlurView pointerEvents="none" blurTarget={blurTarget} blurMethod="dimezisBlurViewSdk31Plus" tint={light?'light':'dark'} intensity={22} style={StyleSheet.absoluteFill} />
+        <View pointerEvents="none" style={[StyleSheet.absoluteFill,{backgroundColor:light?'#FFFFFFB8':'#14121DD9'}]} />
         <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginBottom:12}}><View style={{width:28,height:28,borderRadius:10,backgroundColor:light?'#9E89C112':'#C7ABFF12',alignItems:'center',justifyContent:'center'}}><Icon name={icon} color={colors.accent} size={17} /></View><Text style={{fontSize:9,color:colors.muted,letterSpacing:1}}>{String(index+1).padStart(2,'0')}</Text></View>
         <Text style={{color:colors.ink,fontSize:13,lineHeight:20,fontWeight:'600'}}>{title}</Text><Text style={{color:colors.muted,fontSize:11,lineHeight:17,marginTop:3}}>{detail}</Text>
       </View>

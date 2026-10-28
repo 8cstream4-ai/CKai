@@ -1,4 +1,4 @@
-name: CKai - Preuves accueil avant apres
+name: CKai - Preuves Android
 on:
   workflow_run:
     workflows: ['CKai - APK Android']
@@ -14,6 +14,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Recuperer les preuves avant correction
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: CKai-V2-avant
@@ -29,12 +30,26 @@ jobs:
           path: evidence
       - name: Decrire les fichiers
         run: |
-          echo 'CKai accueil : captures et videos AVANT / APRES.' > evidence/LIRE-MOI.txt
-          echo 'Ouvrir visual-proof/before et visual-proof/after. Les donnees et le profil CKaiTest sont synthetiques.' >> evidence/LIRE-MOI.txt
+          echo 'CKai Android : accueil avant/apres, imports photo/video et notifications.' > evidence/LIRE-MOI.txt
+          echo 'Ouvrir visual-proof/before, visual-proof/after et v05-proof. Les donnees et le profil CKaiTest sont synthetiques.' >> evidence/LIRE-MOI.txt
           echo 'intro.mp4 enregistre le demarrage de l’accueil, la selection dune carte et la frappe. gfxinfo.txt contient la mesure de rendu de lemulateur.' >> evidence/LIRE-MOI.txt
           echo 'motion-checks.json documente les controles de stabilite en animations reduites et economie de batterie. Les mesures sur un telephone physique restent distinctes.' >> evidence/LIRE-MOI.txt
+      - name: Verifier les fichiers video
+        shell: python
+        run: |
+          import json,subprocess
+          from pathlib import Path
+          result=[]
+          for path in Path('evidence').rglob('*.mp4'):
+              info=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration','-of','json',str(path)]))
+              duration=float(info['format']['duration'])
+              assert duration>1, 'Recording is too short: '+str(path)
+              result.append({'file':str(path.relative_to('evidence')),'durationSeconds':duration})
+          assert result, 'No screen recordings were captured'
+          Path('evidence/videos.json').write_text(json.dumps(result,indent=2))
+          print('Valid screen recordings:',json.dumps(result))
       - uses: actions/upload-artifact@v4
         with:
-          name: CKai-Accueil-Avant-Apres
+          name: CKai-Preuves-Android
           path: evidence
           retention-days: 7

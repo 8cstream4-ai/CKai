@@ -2,7 +2,7 @@
   "expo": {
     "name": "CKai",
     "slug": "ckai-private",
-    "version": "0.4.1",
+    "version": "0.5.0",
     "scheme": "ckai",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "android": {
       "package": "app.ckai.privateassistant",
-      "versionCode": 5,
+      "versionCode": 6,
       "softwareKeyboardLayoutMode": "resize",
       "allowBackup": false
     },

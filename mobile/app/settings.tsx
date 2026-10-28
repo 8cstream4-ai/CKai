@@ -63,7 +63,7 @@ export default function Settings() {
         })();
       }} /></View>
       {result ? <Text accessibilityLiveRegion="polite" style={{ color: colors.ink, lineHeight: 22, fontSize: 13, marginTop: 18 }}>{result}</Text> : null}
-      <Text style={{ color: colors.muted, fontSize: 12, lineHeight: 21, marginTop: 28 }}>Modèles : GPT-OSS 20B et 120B.{ '\n' }Contexte glissant jusqu’à 32 000 caractères, résumé des échanges anciens et extraits pertinents des documents. L’historique complet et les fichiers restent sur l’appareil.{ '\n\n' }CKai 0.4 · Application de test privée.{ '\n' }Le partage d’une réponse passe par le sélecteur Android et reste à ton initiative.</Text>
+      <Text style={{ color: colors.muted, fontSize: 12, lineHeight: 21, marginTop: 28 }}>Modèles : GPT-OSS 20B et 120B.{ '\n' }Contexte glissant jusqu’à 32 000 caractères, résumé des échanges anciens et extraits pertinents des documents. L’historique complet et les fichiers restent sur l’appareil.{ '\n\n' }CKai 0.5.0 · Application de test privée.{ '\n' }Le partage d’une réponse passe par le sélecteur Android et reste à ton initiative.</Text>
     </ScrollView>
   </KeyboardAvoidingView>;
 }

@@ -139,6 +139,8 @@ jobs:
         run: node mobile/scripts/prepare-ui-dump.mjs
       - name: Preparer les vrais fichiers de test
         run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
           mkdir -p artifacts/fixtures
           cp mobile/assets/icon.png artifacts/fixtures/CKai-image-test.png
           ffmpeg -loglevel error -y -f lavfi -i 'color=c=0x7464B0:s=480x320:r=15' -vf 'drawtext=text=CKai:fontcolor=white:fontsize=56:x=(w-text_w)/2:y=(h-text_h)/2' -t 6 -c:v libx264 -pix_fmt yuv420p -movflags +faststart artifacts/fixtures/CKai-video-test.mp4

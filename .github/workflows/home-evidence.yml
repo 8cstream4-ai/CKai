@@ -34,6 +34,8 @@ jobs:
           echo 'Ouvrir visual-proof/before, visual-proof/after et v05-proof. Les donnees et le profil CKaiTest sont synthetiques.' >> evidence/LIRE-MOI.txt
           echo 'intro.mp4 enregistre le demarrage de l’accueil, la selection dune carte et la frappe. gfxinfo.txt contient la mesure de rendu de lemulateur.' >> evidence/LIRE-MOI.txt
           echo 'motion-checks.json documente les controles de stabilite en animations reduites et economie de batterie. Les mesures sur un telephone physique restent distinctes.' >> evidence/LIRE-MOI.txt
+      - name: Installer les outils video
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
       - name: Verifier les fichiers video
         shell: python
         run: |

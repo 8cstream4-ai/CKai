@@ -46,20 +46,25 @@ def tap(text):
 def screenshot(name):
     (out / name).write_bytes(adb('exec-out', 'screencap', '-p'))
 
-try:
-    adb('install', '-r', 'artifacts/CKai-test.apk', timeout=90)
-    adb('logcat', '-c')
-    adb('shell', 'am', 'start', '-W', '-n', 'app.ckai.privateassistant/.MainActivity')
-    wait('Prénom ou pseudo'); screenshot('01-profil.png')
-    tap('Prénom ou pseudo'); adb('shell', 'input', 'text', 'CKaiTest'); adb('shell', 'input', 'keyevent', '4')
-    tap('Entrer dans CKai'); wait('Historique'); wait('CKaiTest'); screenshot('02-accueil.png')
-    tap('Joindre une photo, une vidéo ou un fichier'); wait('Donne du contexte'); wait('DOCX'); screenshot('03-imports.png')
-    adb('shell', 'input', 'keyevent', '4')
-    tap('Historique'); tap('Profil et réglages'); wait('Réglages'); screenshot('04-reglages.png')
-    adb('shell', 'am', 'force-stop', 'app.ckai.privateassistant')
-    adb('shell', 'am', 'start', '-W', '-n', 'app.ckai.privateassistant/.MainActivity')
-    wait('CKaiTest'); print('APK : lancement, profil persistant, accueil, imports et réglages OK.')
-finally:
-    screenshot('99-fin.png')
-    (out / 'app-logcat.txt').write_bytes(adb('logcat', '-d', '-s', 'ReactNativeJS:V', 'AndroidRuntime:V', 'libc:F', '*:S'))
-    (out / 'logcat.txt').write_bytes(adb('logcat', '-d', '-t', '600'))
+def main():
+    try:
+        adb('install', '-r', 'artifacts/CKai-test.apk', timeout=90)
+        adb('logcat', '-c')
+        adb('shell', 'am', 'start', '-W', '-n', 'app.ckai.privateassistant/.MainActivity')
+        wait('Prénom ou pseudo'); screenshot('01-profil.png')
+        tap('Prénom ou pseudo'); adb('shell', 'input', 'text', 'CKaiTest'); adb('shell', 'input', 'keyevent', '4')
+        tap('Entrer dans CKai'); wait('Historique'); wait('CKaiTest'); screenshot('02-accueil.png')
+        tap('Joindre une photo, une vidéo ou un fichier'); wait('Donne du contexte'); wait('DOCX'); screenshot('03-imports.png')
+        adb('shell', 'input', 'keyevent', '4')
+        tap('Historique'); tap('Profil et réglages'); wait('Réglages'); screenshot('04-reglages.png')
+        adb('shell', 'am', 'force-stop', 'app.ckai.privateassistant')
+        adb('shell', 'am', 'start', '-W', '-n', 'app.ckai.privateassistant/.MainActivity')
+        wait('CKaiTest'); print('APK : lancement, profil persistant, accueil, imports et réglages OK.')
+    finally:
+        screenshot('99-fin.png')
+        (out / 'app-logcat.txt').write_bytes(adb('logcat', '-d', '-s', 'ReactNativeJS:V', 'AndroidRuntime:V', 'libc:F', '*:S'))
+        (out / 'logcat.txt').write_bytes(adb('logcat', '-d', '-t', '600'))
+    
+
+if __name__ == '__main__':
+    main()

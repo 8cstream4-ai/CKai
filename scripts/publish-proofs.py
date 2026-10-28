@@ -13,7 +13,7 @@ entries=[]
 for file in (pathlib.Path('artifacts/visual-proof')/phase).glob('*.png'):
     encoded=base64.b64encode(file.read_bytes()).decode(); content='\n'.join(encoded[i:i+100] for i in range(0,len(encoded),100))
     entries.append({'path':phase+'/'+file.name+'.b64','mode':'100644','type':'blob','content':content})
-for name in ['evidence.json','motion-checks.json','gfxinfo.txt']:
+for name in ['evidence.json','motion-checks.json','gfxinfo.txt','v05-results.json']:
     meta=pathlib.Path('artifacts/visual-proof')/phase/name
     if meta.exists():entries.append({'path':phase+'/'+name,'mode':'100644','type':'blob','content':meta.read_text()})
 if not entries:

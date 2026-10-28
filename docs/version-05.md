@@ -37,17 +37,21 @@ Keyboard Controller, dans la version compatible du SDK Expo installé, remplace 
 
 L’accueil adapte ses marges, son orbe et ses cartes aux écrans courts. Le décor s’arrête également quand l’écran du chat perd le focus. Les garanties et limites de performance physique restent celles du rapport accueil : 60 fps ne sont pas certifiés sur un téléphone non attaché à cette session.
 
-## Validation en cours
+## Livraison et contrôles
 
-- 113 tests du moteur, Markdown, outils médias et cycle de vie des tâches : réussis.
-- Lint, types du moteur et types natifs : réussis.
-- Compilation du module Kotlin et de son manifeste : réussie.
-- Lecture réelle de PDF, DOCX et tableurs hors ligne : réussie.
-- Vérification HTTP sans clé IA : six images pour « Monkey D. Luffy » et quatre vidéos pour « waterfall ».
-- APK 0.5.0 exécuté : lancement, profil persistant, thèmes, Markdown, photo importée/plein écran, vidéo importée/lecture et clavier validés. Stabilité des décors : 0 pixel modifié en mode réduit et économie d’énergie.
-- Le contrôle des notifications a trouvé un bug réel : `startForegroundService()` renvoyait `ComponentName`, non sérialisable par Expo. Le module retourne maintenant `Unit`. [L’APK corrigé 0.5.1 est compilé](https://github.com/8cstream4-ai/CKai/actions/runs/40690635044/artifacts/12816874969), avec le même package/certificat et versionCode 7 ; le premier APK 0.5.0 ne doit pas servir à valider l’arrière-plan. Le contrôle Android complet du binaire corrigé est en cours.
+- [APK 0.5.1 — ZIP à extraire](https://github.com/8cstream4-ai/CKai/actions/runs/40690635044/artifacts/12816874969). Installer `CKai-test.apk` sans désinstaller CKai. Package et certificat identiques à 0.4.1, versionCode 5 → 7 ; l’APK 0.5.0 est remplacé.
+- [Captures avant/après et vidéos écran](https://github.com/8cstream4-ai/CKai/actions/runs/40694433346/artifacts/12817948762) : accueil à 360/393/430 dp, sombre/clair/AMOLED, police 100/130 %, paysage, Markdown, imports et lecteurs photo/vidéo. Les profils et médias de démonstration sont synthétiques.
+- [Captures lisibles des notifications, extraites du même enregistrement réussi](https://github.com/8cstream4-ai/CKai/actions/runs/40695726048/artifacts/12819277071) : notification en cours avec action Arrêter, notification terminée, puis ouverture de la conversation. Les captures instantanées 08/09 du premier ZIP étaient prises pendant le dessin du volet ; ces images du film montrent son état effectivement affiché.
+- [113 tests, lint et types moteur/natifs](https://github.com/8cstream4-ai/CKai/actions/runs/40690634981) : réussis. Cinq contrôles de lecture réelle de PDF, DOCX et tableurs hors ligne : réussis.
+- [Compilation du module Kotlin et du manifeste](https://github.com/8cstream4-ai/CKai/actions/runs/40690635008) : réussie.
+- [Parcours Android sur le véritable APK 0.5.1](https://github.com/8cstream4-ai/CKai/actions/runs/40690635044) : lancement, profil persistant, photo importée et agrandie, vidéo MP4 importée et lue, service Headless actif en arrière-plan, notification de fin, ouverture de la bonne conversation et arrêt du service depuis la notification : réussis. Le composer reste visible au-dessus du clavier ; les PNG ont été inspectés.
+- [Recherche HTTP réelle sans clé IA](https://github.com/8cstream4-ai/CKai/actions/runs/40680750725) : six images pour « Monkey D. Luffy » et quatre vidéos pour « waterfall ». Ce contrôle vérifie les fournisseurs de médias, pas un échange Groq.
+- Vidéos vérifiées par FFprobe : accueil avant 14,46 s, accueil après 17,13 s et test en arrière-plan 30,60 s.
+- Réduction du mouvement et économie de batterie : ratio de pixels modifiés **0,0** dans les régions de décor contrôlées. Les 60 fps physiques ne sont pas validés : l’émulateur SwiftShader relève 100 % de frames en retard et une médiane de 350 ms ; ces mesures sous rendu logiciel ne prouvent pas les performances sur téléphone.
 
-Les contrôles Android prévus utilisent de vrais fichiers PNG/MP4 de démonstration, un lecteur vidéo natif et le même service/tâche Headless que la génération. Le test de notification est explicitement local : aucune réponse de fournisseur n’est simulée ni présentée comme une génération Groq réelle. Le compte de test ne contient aucune clé. L’analyse Vision réelle et une génération Groq en arrière-plan restent à vérifier sur le téléphone avec sa clé.
+Le compte de test ne contient aucune clé. Le test de notification utilise le même service/tâche Headless que la génération, avec un minuteur local explicitement nommé : aucune réponse de fournisseur n’est simulée ni présentée comme une génération Groq réelle. **L’analyse Vision réelle et une génération Groq en arrière-plan restent à vérifier sur le téléphone avec sa clé.** La caméra, le PiP physique, les variantes de sélecteur système et les restrictions batterie propres au constructeur restent aussi des contrôles sur l’appareil.
+
+L’inspection du premier APK 0.5.0 avait révélé un retour `ComponentName` non sérialisable par Expo au démarrage du service. La version livrée retourne `Unit`, et le parcours complet ci-dessus a été rejoué sur 0.5.1. Le journal Android contient également une exception récupérée du processus d’automatisation `CKaiDump` pendant une transition sans fenêtre accessible ; elle ne provient pas du processus CKai.
 
 ## Vérification manuelle sur le téléphone
 

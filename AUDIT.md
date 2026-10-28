@@ -8,8 +8,8 @@ Le propriétaire confirme que l’APK 0.3 fonctionne sur son téléphone et sign
 
 | Défaut | Écran | Gravité | Cause observée dans le code | Correction prévue | État |
 |---|---|---|---|---|---|
-| Étoiles, italique et barré bruts | Réponse IA | Haute | Petit parser partiel, regex gras seulement, pas de normalisation | Pipeline Remend + AST Markdown/GFM, 40+ fixtures FR et tests des fragments | À corriger |
-| Tableaux et syntaxe partielle visibles | Réponse IA | Haute | Absence de GFM et réparation des blocs | Tables natives horizontales, masquage des marqueurs incomplets | À corriger |
+| Étoiles, italique et barré bruts | Réponse IA | Haute | Petit parser partiel, regex gras seulement, pas de normalisation | Pipeline Remend + AST Markdown/GFM, 40+ fixtures FR et tests des fragments | Corrigé : phase B |
+| Tableaux et syntaxe partielle visibles | Réponse IA | Haute | Absence de GFM et réparation des blocs | Tables natives horizontales, masquage des marqueurs incomplets | Corrigé : phase B |
 | Pas d’intro au démarrage à froid | Ouverture | Haute | Simple écran de chargement | Splash cohérent, animation 2,4 s passable/désactivable | À corriger |
 | Hiérarchie, espacements et composer chargés | Chat/réglages | Haute | Composants peu hiérarchisés, tokens incomplets | Design system cohérent, panneaux et micro-interactions | À corriger |
 | Quota bloque la conversation | Génération | Haute | Un seul fournisseur dans le runtime | Routeur gratuit borné, cooldowns, repli avant tout texte, clés guidées | À corriger |
@@ -38,3 +38,12 @@ La livraison accueil ajoute un orbe RuntimeEffect Skia (bandes, reflet, contour,
 Compilation Android et contrôle visuel séparé réussis. [APK](https://github.com/8cstream4-ai/CKai/actions/runs/40666397076/artifacts/12807178571) · [Preuves avant/après avec vidéos](https://github.com/8cstream4-ai/CKai/actions/runs/40669790177/artifacts/12807673694) · [Rapport détaillé](docs/accueil-04.md). Inspection effective des PNG : couture de l’orbe et contraste des cartes corrigés. Réduction du mouvement et économie de batterie : aucun pixel modifié dans les régions contrôlées. Les 60 fps ne sont pas validés ; le rapport donne les relevés lents de l’émulateur logiciel et distingue cette limite d’un test physique.
 
 Le propriétaire demande ensuite de poursuivre sur la génération en arrière-plan avec notification Android et les photos/vidéos réellement intégrées au chat. Ce nouveau travail n’est pas inclus dans l’APK 0.4.1.
+
+
+## Livraison arrière-plan et médias 0.5.1
+
+[APK 0.5.1](https://github.com/8cstream4-ai/CKai/actions/runs/40690635044/artifacts/12816874969) · [Captures et vidéos](https://github.com/8cstream4-ai/CKai/actions/runs/40694433346/artifacts/12817948762) · [Images des notifications extraites du film](https://github.com/8cstream4-ai/CKai/actions/runs/40695726048/artifacts/12819277071) · [Rapport et contrôles manuels](docs/version-05.md).
+
+Le vrai APK passe le parcours Android : imports et lecteur photo/vidéo, composer visible avec clavier, service Headless maintenu hors de l’activité, notification de fin, ouverture de sa conversation et arrêt. Inspection effective des PNG et des images du film. Package et certificat inchangés, versionCode 7 ; mise à jour sans désinstallation. 113 tests, lint, types, lecteur de documents et compilation native réussis. Les outils publics renvoient six images Luffy et quatre vidéos de cascade avec sources.
+
+Le contrôle de notification est un minuteur local identifié, sans clé ni génération Groq simulée. Les requêtes Groq/Vision avec la clé du téléphone, l’analyse limitée à trois images sans son pour les vidéos, les restrictions batterie constructeur et les performances physiques restent explicitement distingués dans le rapport. Le routeur multi-fournisseurs et la génération d’images du cahier des charges ne sont pas inclus dans cette livraison.

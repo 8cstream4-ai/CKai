@@ -164,6 +164,7 @@ function ChatScreen({ colors: baseColors }: { colors: Colors }) {
   }
   const runtimeLatest = useRef(runtime); runtimeLatest.current = runtime;
   const onRetry = useCallback((id: string) => { void runtimeLatest.current.retry(id); }, []);
+  const closeVideo=useCallback(()=>setVideo(null),[]);
   const choosePrompt=useCallback((value:string)=>{setDraft(value);input.current?.focus();},[]);
   const lastMessageId = runtime.messages.at(-1)?.id;
   const currentActivity = runtime.activity.at(-1)?.text;
@@ -215,7 +216,7 @@ function ChatScreen({ colors: baseColors }: { colors: Colors }) {
         <Text style={{ color: colors.muted, fontSize: 9, textAlign: 'center', marginTop: 8 }}>{`Web ${runtime.preferences.web === 'on' ? 'activé' : runtime.preferences.web === 'off' ? 'désactivé' : 'auto'} · ${attachments.length ? `${attachments.length} pièce(s) jointe(s)` : 'CKai peut se tromper.'}`}</Text>
       </View>
     </KeyboardAvoidingView>
-    <VideoOverlay item={video} colors={colors} close={() => setVideo(null)} />
+    <VideoOverlay item={video} colors={colors} close={closeVideo} />
     <Sheet visible={attachOpen} title="Donne du contexte à CKai" colors={colors} onClose={() => setAttachOpen(false)}>
       <Choice title="Photos" subtitle="Analyse visuelle et lecture du texte" colors={colors} onPress={() => { void pick('photos'); }} />
       <Choice title="Prendre une photo" subtitle="Document, objet, idée sur papier…" colors={colors} onPress={() => { void pick('camera'); }} />

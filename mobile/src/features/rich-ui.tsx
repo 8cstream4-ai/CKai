@@ -1,4 +1,4 @@
-import React, { Component, useEffect, useRef, useState, type ReactNode } from 'react';
+import React, { Component, memo, useEffect, useRef, useState, type ReactNode } from 'react';
 import { ActivityIndicator, Alert, AppState, Modal, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { useVideoPlayer, VideoView } from 'expo-video';
@@ -26,7 +26,7 @@ export async function shareFile(uri: string, mime?: string) {
   try { if (!await Sharing.isAvailableAsync()) throw new Error(); await Sharing.shareAsync(uri, mime ? { mimeType: mime } : {}); }
   catch { Alert.alert('Fichier', 'Impossible d’ouvrir le partage de ce fichier.'); }
 }
-export function ImageCard({ uri, title, colors, source, credit, license, compact = false, width, height }: {
+export const ImageCard = memo(function ImageCard({ uri, title, colors, source, credit, license, compact = false, width, height }: {
   uri: string; title: string; colors: Colors; source?: string; credit?: string; license?: string; compact?: boolean; width?: number; height?: number;
 }) {
   const [open, setOpen] = useState(false); const [loaded, setLoaded] = useState(false); const [failed, setFailed] = useState(false); const [attempt, setAttempt] = useState(0);
@@ -66,7 +66,7 @@ export function ImageCard({ uri, title, colors, source, credit, license, compact
       <Text numberOfLines={2} style={{ position: 'absolute', bottom: insets.bottom + 24, left: 24, right: 24, textAlign: 'center', color: '#FFFFFF', fontSize: 12, lineHeight: 18 }}>{title}</Text>
     </GestureHandlerRootView></Modal>
   </MediaBoundary>;
-}
+});
 function VideoPlayer({ item, colors, close }: { item: Attachment; colors: Colors; close(): void }) {
   const insets = useSafeAreaInsets(); const overlay = viewerColors(colors); const inPip = useRef(false);
   const player = useVideoPlayer(item.uri, instance => { instance.loop = false; instance.play(); });
@@ -98,27 +98,27 @@ export function VideoCard({ item, colors, onPlay }: { item: Attachment; colors: 
     {item.source ? <Pressable accessibilityRole="link" accessibilityLabel={'Source : ' + item.name} onPress={() => { void openSource(item.source!); }} style={{ paddingHorizontal: 12, paddingBottom: 12, minHeight: 48, justifyContent: 'center' }}><Text numberOfLines={2} style={{ color: colors.muted, fontSize: 10, lineHeight: 16 }}>{item.credit || 'Source vidéo'}{item.license ? ' · ' + item.license : ''}</Text></Pressable> : null}
   </View>;
 }
-export function VideoOverlay({ item, colors, close }: { item: Attachment | null; colors: Colors; close(): void }) {
+export const VideoOverlay = memo(function VideoOverlay({ item, colors, close }: { item: Attachment | null; colors: Colors; close(): void }) {
   return <Modal visible={!!item} onRequestClose={close} animationType="fade">{item ? <MediaBoundary colors={viewerColors(colors)}><VideoPlayer key={item.id} item={item} colors={colors} close={close} /></MediaBoundary> : null}</Modal>;
-}
+});
 export function Attachments({ items, colors, onPlay }: { items: Attachment[]; colors: Colors; onPlay(item: Attachment): void }) {
   return <View style={{ gap: 8, minWidth: 180 }}>{items.map(item => item.kind === 'image' ? <ImageCard key={item.id} uri={item.uri} title={item.name} colors={colors} /> : item.kind === 'video' ? <VideoCard key={item.id} item={item} colors={colors} onPlay={onPlay} /> :
     <Pressable key={item.id} accessibilityRole="button" accessibilityLabel={'Ouvrir ou partager ' + item.name} onPress={() => { void shareFile(item.uri, item.mime); }} style={{ flexDirection: 'row', alignItems: 'center', borderRadius: 16, backgroundColor: colors.raised, padding: 16, gap: 12, minHeight: 64 }}><Icon name="document-text-outline" color={colors.accent} /><View style={{ flex: 1 }}><Text numberOfLines={1} style={{ color: colors.ink, fontSize: 13 }}>{item.name}</Text><Text style={{ color: colors.muted, fontSize: 10, marginTop: 5 }}>{(item.size / 1024).toFixed(0)} Ko · Ouvrir / partager</Text>{item.note ? <Text style={{ color: colors.muted, fontSize: 10, lineHeight: 16, marginTop: 5 }}>{item.note}</Text> : null}</View><Icon name="arrow-down-outline" color={colors.muted} size={17} /></Pressable>)}</View>;
 }
-export function Videos({ items, colors, onPlay }: { items: MediaVideo[]; colors: Colors; onPlay(item: Attachment): void }) {
+export const Videos = memo(function Videos({ items, colors, onPlay }: { items: MediaVideo[]; colors: Colors; onPlay(item: Attachment): void }) {
   if (!items.length) return null;
   return <View style={{ marginBottom: 12 }}><Text style={{ color: colors.muted, fontSize: 12, marginBottom: 8 }}>{items.length} vidéo{items.length > 1 ? 's' : ''} trouvée{items.length > 1 ? 's' : ''}</Text>{items.map(item => <VideoCard key={item.url} colors={colors} onPlay={onPlay} item={{ id: item.url, kind: 'video', name: item.title, uri: item.url, mime: item.mime, size: 0, source: item.source, credit: item.credit, license: item.license, ...(item.poster ? { preview: item.poster } : {}), ...(item.duration ? { duration: item.duration } : {}) }} />)}</View>;
-}
+});
 export function Sources({ sources, colors }: { sources: Source[]; colors: Colors }) {
   const [open, setOpen] = useState(false); if (!sources.length) return null;
   return <><Pressable accessibilityRole="button" onPress={() => setOpen(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 48, paddingHorizontal: 12, marginTop: 16, alignSelf: 'flex-start', borderRadius: 24, borderWidth: 1, borderColor: colors.line }}><Icon name="globe-outline" color={colors.accent} size={16} /><Text style={{ color: colors.ink, fontSize: 12 }}>{sources.length} sources</Text><Icon name="chevron-forward" color={colors.muted} size={12} /></Pressable>
     <Sheet visible={open} title="Les sources" colors={colors} onClose={() => setOpen(false)}>{sources.map(source => <Pressable key={source.id} accessibilityRole="link" onPress={() => { void WebBrowser.openBrowserAsync(source.url).catch(() => {}); }} style={{ borderBottomWidth: 1, borderColor: colors.line, paddingVertical: 19 }}><Text style={{ color: colors.accent, fontSize: 11, marginBottom: 7 }}>[{source.id}] {source.domain}{source.publishedAt ? ` · ${source.publishedAt.slice(0, 10)}` : ''}</Text><Text style={{ color: colors.ink, fontSize: 16, lineHeight: 23 }}>{source.title}</Text><Text numberOfLines={4} style={{ color: colors.muted, fontSize: 12, lineHeight: 20, marginTop: 7 }}>{source.snippet}</Text></Pressable>)}</Sheet>
   </>;
 }
-export function Gallery({ items, colors }: { items: GalleryImage[]; colors: Colors }) {
+export const Gallery = memo(function Gallery({ items, colors }: { items: GalleryImage[]; colors: Colors }) {
   const [expanded, setExpanded] = useState(false); const visible = expanded ? items : items.slice(0, 4);
   return <View style={{ marginBottom: 12 }}><Text style={{ color: colors.muted, fontSize: 12, marginBottom: 8 }}>{items.length} image{items.length > 1 ? 's' : ''} trouvée{items.length > 1 ? 's' : ''}</Text><View style={{ flexDirection: 'row', flexWrap: 'wrap', columnGap: 12 }}>{visible.map(item => <View key={item.url} style={{ width: visible.length === 1 ? '100%' : '46%', flexGrow: 1 }}><ImageCard uri={item.url} title={item.title} source={item.source} credit={item.credit} license={item.license} colors={colors} compact={visible.length > 1} {...(item.width ? { width: item.width } : {})} {...(item.height ? { height: item.height } : {})} /></View>)}</View>{!expanded && items.length > 4 ? <Pressable accessibilityRole="button" onPress={() => setExpanded(true)} style={{ minHeight: 48, justifyContent: 'center' }}><Text style={{ color: colors.accent, fontSize: 13 }}>Voir les autres images ({items.length - 4})</Text></Pressable> : null}</View>;
-}
+});
 export function WeatherCard({ data, colors }: { data: Record<string, unknown>; colors: Colors }) {
   const current = data.current as { temperature_2m?: number; apparent_temperature?: number; wind_speed_10m?: number; precipitation?: number; weather_code?: number } | undefined;
   const daily = data.daily as { time?: string[]; temperature_2m_max?: number[]; temperature_2m_min?: number[] } | undefined;

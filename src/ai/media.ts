@@ -11,7 +11,8 @@ const number = (value: unknown): number | undefined => typeof value === 'number'
 const metadata = (info: RecordValue, key: string): string => text(object(object(info.extmetadata)[key]).value);
 function pages(data: unknown): RecordValue[] {
   const value = object(object(data).query).pages;
-  return Array.isArray(value) ? value.map(object) : Object.values(object(value)).map(object);
+  const result = Array.isArray(value) ? value.map(object) : Object.values(object(value)).map(object);
+  return result.sort((a, b) => (number(a.index) ?? Number.MAX_SAFE_INTEGER) - (number(b.index) ?? Number.MAX_SAFE_INTEGER));
 }
 function mediaURL(value: unknown): string | null {
   const url = typeof value === 'string' ? publicURL(value.startsWith('//') ? 'https:' + value : value) : null;

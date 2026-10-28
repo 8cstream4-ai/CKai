@@ -74,11 +74,13 @@ try:
     recording=subprocess.Popen(['adb','shell','screenrecord','--time-limit','45','/sdcard/ckai-background.mp4'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
     tap('Tester les notifications');wait_service(True)
     adb('shell','input','keyevent','3');adb('shell','cmd','statusbar','expand-notifications')
+    wait('Test de notification en cours',seconds=8)
     shot('08-notification-en-cours.png')
     wait_service(False,seconds=20)
     end=time.monotonic()+10
     while 'Notification de test CKai' not in notification_dump() and time.monotonic()<end:time.sleep(.5)
     assert 'Notification de test CKai' in notification_dump(),'No completion notification while CKai was backgrounded'
+    wait('Notification de test CKai')
     shot('09-notification-terminee.png')
     # Tapping the actual notification opens the conversation that owns the job.
     tap('Notification de test CKai');wait('Lire CKai-video-test.mp4')

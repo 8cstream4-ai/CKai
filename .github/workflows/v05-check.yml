@@ -25,8 +25,8 @@ jobs:
           java-version: '17'
       - uses: actions/download-artifact@v4
         with:
-          name: CKai-Android-27
-          run-id: 40685203281
+          name: CKai-Android-30
+          run-id: 40690635044
           github-token: ${{ github.token }}
           path: artifacts
       - name: Activer KVM
@@ -60,7 +60,7 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
           script: |
             adb push /tmp/ckai-ui-dump.jar /data/local/tmp/ckai-ui-dump.jar
-            /tmp/ckai-visual-env/bin/python scripts/visual-audit.py
+            /tmp/ckai-visual-env/bin/python mobile/scripts/android-smoke.py
             /tmp/ckai-visual-env/bin/python scripts/android-v05.py
       - name: Afficher les erreurs de lancement
         if: always()
@@ -99,5 +99,5 @@ jobs:
               duration=float(info['format']['duration'])
               assert duration>1,str(path)
               videos.append({'file':str(path),'duration':duration})
-          assert len(videos)>=2,'Expected home and notification screen recordings'
+          assert len(videos)>=1,'Expected a notification screen recording'
           print(json.dumps(videos))

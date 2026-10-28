@@ -69,7 +69,7 @@ function createRuntimeEngine() {
   };
   let startup: Promise<void> | null = null;
   let initialURLConsumed = false;
-  async function openNotificationURL(url: string | null) {
+  async function openNotificationURL(url: string | null | undefined) {
     if (!url) return;
     try {
       const parsed = new URL(url);

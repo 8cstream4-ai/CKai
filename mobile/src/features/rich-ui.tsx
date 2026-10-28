@@ -47,7 +47,7 @@ export function ImageCard({ uri, title, colors, source, credit, license, compact
       let local = uri;
       if (uri.startsWith('https://')) {
         const ext = /\.(png|jpe?g|webp|gif)(?:\?|$)/i.exec(uri)?.[1]?.toLowerCase() ?? 'jpg';
-        local = (await File.downloadFileAsync(uri, new File(Paths.cache, randomUUID() + '.' + ext))).uri;
+        local = (await File.downloadFileAsync(uri, new File(Paths.cache, randomUUID() + '.' + ext), { headers: { 'User-Agent': 'CKai/0.5 (https://github.com/8cstream4-ai/CKai)' } })).uri;
       }
       await shareFile(local, 'image/*');
     } catch { Alert.alert('Image', 'Le téléchargement de cette image a échoué. Tu peux ouvrir sa source.'); }
@@ -72,7 +72,8 @@ function VideoPlayer({ item, colors, close }: { item: Attachment; colors: Colors
   const player = useVideoPlayer(item.uri, instance => { instance.loop = false; instance.play(); });
   const [error, setError] = useState(false); const [ready, setReady] = useState(false);
   useEffect(() => {
-    const app = AppState.addEventListener('change', state => { if (state !== 'active' && !inPip.current) player.pause(); });
+    if (player.status === 'error') setError(true);
+    const app = AppState.addEventListener('change', state => { if (state !== 'active' && !inPip.current) { try { player.pause(); } catch {} } });
     const subscription = player.addListener('statusChange', event => { if (event.status === 'error') setError(true); });
     return () => { app.remove(); subscription.remove(); };
   }, [player]);

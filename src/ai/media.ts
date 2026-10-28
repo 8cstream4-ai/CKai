@@ -69,29 +69,41 @@ export function commonsVideos(data: unknown): MediaVideo[] {
 }
 async function queryAPI(url: URL, fetcher: Fetcher, signal: AbortSignal): Promise<unknown> {
   signal.throwIfAborted();
-  const response = await fetcher(url.toString(), { signal, headers: { Accept: 'application/json', 'Api-User-Agent': 'CKai/0.5 (https://github.com/8cstream4-ai/CKai)' } });
+  const response = await fetcher(url.toString(), { signal, headers: { Accept: 'application/json', 'User-Agent': 'CKai/0.5 (https://github.com/8cstream4-ai/CKai)', 'Api-User-Agent': 'CKai/0.5 (https://github.com/8cstream4-ai/CKai)' } });
   const data: unknown = JSON.parse(await boundedText(response));
   if (object(data).error) throw new Error('La recherche de médias est momentanément indisponible.');
   return data;
 }
 export async function searchMediaImages(query: string, fetcher: Fetcher, signal: AbortSignal): Promise<MediaImage[]> {
-  const url = new URL('https://commons.wikimedia.org/w/api.php');
-  url.search = new URLSearchParams({ action: 'query', format: 'json', generator: 'search', gsrsearch: query.slice(0, 200), gsrnamespace: '6',
+  const commons = new URL('https://commons.wikimedia.org/w/api.php');
+  commons.search = new URLSearchParams({ action: 'query', format: 'json', generator: 'search', gsrsearch: query.slice(0, 200), gsrnamespace: '6',
     gsrlimit: '6', prop: 'imageinfo', iiprop: 'url|extmetadata|mime|size', iiurlwidth: '900' }).toString();
-  let images: MediaImage[] = [];
-  try { images = commonsImages(await queryAPI(url, fetcher, signal)); } catch { signal.throwIfAborted(); }
-  if (images.length >= 3) return images;
-  for (const language of ['fr', 'en']) {
+  const requests: { url: URL; parse(data: unknown): MediaImage[] }[] = [{ url: commons, parse: commonsImages }];
+  for (const language of ['en', 'fr']) {
     const wiki = new URL('https://' + language + '.wikipedia.org/w/api.php');
     wiki.search = new URLSearchParams({ action: 'query', format: 'json', generator: 'search', gsrsearch: query.slice(0, 200), gsrnamespace: '0',
       gsrlimit: '3', prop: 'pageimages|info', piprop: 'thumbnail', pithumbsize: '900', pilicense: 'any', inprop: 'url', redirects: '1' }).toString();
-    try {
-      const found = wikipediaImages(await queryAPI(wiki, fetcher, signal));
-      for (const image of found) if (!images.some(item => item.url === image.url)) images.push(image);
-    } catch { signal.throwIfAborted(); }
-    if (images.length >= 3) break;
+    requests.push({ url: wiki, parse: wikipediaImages });
   }
-  return images.slice(0, 6);
+  let successfulRequests = 0;
+  const results = await Promise.all(requests.map(async request => {
+    try { const data = await queryAPI(request.url, fetcher, signal); successfulRequests++; return request.parse(data); }
+    catch { signal.throwIfAborted(); return []; }
+  }));
+  signal.throwIfAborted();
+  if (!successfulRequests) throw new Error('La recherche de médias est momentanément indisponible.');
+  const normalize = (value: string) => value.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+  const terms = normalize(query).split(' ').filter(term => term.length > 1 && !['image','images','photo','photos','de','des','du','le','la','les'].includes(term));
+  const rank = (image: MediaImage) => {
+    const title = normalize(image.title);
+    if (title === normalize(query)) return 100;
+    const words = new Set(title.split(' '));
+    return terms.length ? 80 * terms.filter(term => words.has(term)).length / terms.length : 0;
+  };
+  const wiki = results.slice(1).flat().filter(image => rank(image) >= 30).sort((a, b) => rank(b) - rank(a));
+  // A matching encyclopedia illustration comes first; Commons adds alternative photographs.
+  const candidates = [...wiki.slice(0, 1), ...(results[0] ?? []), ...wiki.slice(1)];
+  return candidates.filter((image, index, all) => all.findIndex(other => other.url === image.url) === index).slice(0, 6);
 }
 export async function searchMediaVideos(query: string, fetcher: Fetcher, signal: AbortSignal): Promise<MediaVideo[]> {
   const url = new URL('https://commons.wikimedia.org/w/api.php');

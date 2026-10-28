@@ -25,10 +25,16 @@ Les quotas du PDF sont indicatifs. Pollinations exige actuellement une clé pour
 
 ## Phase B — pipeline Markdown
 
-Remend 1.4 (Apache-2.0) répare les délimiteurs ; Unified/Remark Parse/GFM/Math (MIT) produisent un AST rendu avec des composants natifs. Évaluation : Streamdown vise React DOM ; Remend est indépendant du DOM et convient au transport natif. Les parseurs natifs plus récents sont écartés au profit de ce pipeline stable et testable. Cinquante fixtures françaises couvrent les styles, listes imbriquées, tableaux, code, liens, images, citations, formules et fragments de 1 à 5 caractères. Le contenu du code est préservé. Les résultats CI sont à confirmer pour ce commit ; pas de validation visuelle annoncée avant les captures après correction.
+Remend 1.4 (Apache-2.0) répare les délimiteurs ; Unified/Remark Parse/GFM/Math (MIT) produisent un AST rendu avec des composants natifs. Évaluation : Streamdown vise React DOM ; Remend est indépendant du DOM et convient au transport natif. Les parseurs natifs plus récents sont écartés au profit de ce pipeline stable et testable. Cinquante fixtures françaises couvrent les styles, listes imbriquées, tableaux, code, liens, images, citations, formules et fragments de 1 à 5 caractères. Le contenu du code est préservé. Les tests et types sont passés. Les captures de l’APK final sont disponibles dans le rapport accueil.
 
 ## Recentrage demandé : accueil uniquement
 
 Le propriétaire a demandé de poursuivre uniquement la refonte visuelle de l’accueil. Les ajouts de fournisseurs, de routeur et de génération d’images du PDF sont donc reportés. La correction Markdown déjà terminée et passée aux tests est conservée. L’audit avant correction a réussi sur l’APK 0.3 (exécution 40599262618) ; la phase B a passé tests, lint, types du moteur et natifs et lecture réelle des documents (40599612009).
 
 La livraison accueil ajoute un orbe RuntimeEffect Skia (bandes, reflet, contour, respiration 4 s, pulsation à la frappe, C et étincelle), un fond Skia plafonné à 30 fps avec grain/étoiles et arrêt en économie d’énergie, le nom en dégradé, les entrées mot par mot, les cartes en verre avec appui animé et haptique, le composer lumineux et le bouton animé envoyer/stop. La validation sur le nouvel APK et les preuves après correction restent à effectuer avant livraison.
+
+## Livraison accueil 0.4.1
+
+Compilation Android et contrôle visuel séparé réussis. [APK](https://github.com/8cstream4-ai/CKai/actions/runs/40666397076/artifacts/12807178571) · [Preuves avant/après avec vidéos](https://github.com/8cstream4-ai/CKai/actions/runs/40669790177/artifacts/12807673694) · [Rapport détaillé](docs/accueil-04.md). Inspection effective des PNG : couture de l’orbe et contraste des cartes corrigés. Réduction du mouvement et économie de batterie : aucun pixel modifié dans les régions contrôlées. Les 60 fps ne sont pas validés ; le rapport donne les relevés lents de l’émulateur logiciel et distingue cette limite d’un test physique.
+
+Le propriétaire demande ensuite de poursuivre sur la génération en arrière-plan avec notification Android et les photos/vidéos réellement intégrées au chat. Ce nouveau travail n’est pas inclus dans l’APK 0.4.1.

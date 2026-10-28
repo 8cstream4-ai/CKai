@@ -4,11 +4,11 @@ Assistant IA Android en français : interface sombre, claire et AMOLED, historiq
 
 ## État réel
 
-Le moteur IA dispose de 35 tests automatisés. La compilation Android est lancée par GitHub Actions ; la validation sur un téléphone reste à effectuer. La version 0.3 ajoute la recherche web, les sources, les imports PDF/DOCX/tableurs/images/vidéos, les animations, la météo et la mémoire. Les limites et vérifications manuelles sont détaillées dans `docs/validation-v03.md`. Le grand cahier des charges reste partiellement implémenté.
+La suite comporte 87 tests automatisés, dont 50 fixtures Markdown françaises exercées en streaming. La version 0.4.1 refait l’accueil : orbe et fond Skia, nom en dégradé, cartes en verre et composer lumineux. L’APK et les preuves sont dans [le rapport accueil](docs/accueil-04.md). Les 60 fps sur téléphone physique restent à mesurer. La version 0.3 ajoute la recherche web, les sources, les imports PDF/DOCX/tableurs/images/vidéos, les animations, la météo et la mémoire. Les limites et vérifications manuelles sont détaillées dans `docs/validation-v03.md`. Le grand cahier des charges reste partiellement implémenté.
 
 ## Télécharger le test Android
 
-Ouvrir **Actions → CKai - APK Android → dernière exécution réussie**, puis télécharger l’artefact `CKai-Android-…`. Extraire le ZIP et installer `CKai-test.apk`. Cet APK de test embarque le JavaScript et ne nécessite pas Expo Go.
+Pour la livraison accueil : [télécharger le ZIP APK 0.4.1](https://github.com/8cstream4-ai/CKai/actions/runs/40666397076/artifacts/12807178571). Pour un nouveau build, ouvrir **Actions → CKai - APK Android** et télécharger l’artefact `CKai-Android-…` après une compilation réussie. Extraire le ZIP et installer `CKai-test.apk`. Cet APK de test embarque le JavaScript et ne nécessite pas Expo Go.
 
 Groq est intégré. Sans clé fournie au build, ajouter sa clé dans les réglages de l’application. Pour préconfigurer un build personnel, définir le secret Actions `GROQ_API_KEY`. Une clé intégrée à un APK reste extractible : conserver le dépôt et les artefacts privés pour ce mode.
 

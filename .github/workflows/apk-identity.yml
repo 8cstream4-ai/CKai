@@ -1,0 +1,35 @@
+name: CKai - Diagnostic identite APK
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/apk-identity.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  identity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/download-artifact@v4
+        with:
+          name: CKai-Android-16
+          run-id: 40666397076
+          github-token: ${{ github.token }}
+          path: baseline
+      - name: Lire les metadonnees publiques
+        shell: python
+        run: |
+          import os,pathlib,subprocess
+          sdk=pathlib.Path(os.environ.get('ANDROID_SDK_ROOT') or os.environ['ANDROID_HOME'])
+          tools=sorted((sdk/'build-tools').iterdir())[-1]
+          apk='baseline/CKai-test.apk'
+          print('TOOLS',tools)
+          for binary,args in [('apksigner',['verify','--print-certs',apk]),('aapt2',['dump','badging',apk])]:
+              result=subprocess.run([str(tools/binary),*args],capture_output=True,text=True)
+              print(binary,'exit',result.returncode,'stdout',result.stdout[:6000],'stderr',result.stderr[:1000])

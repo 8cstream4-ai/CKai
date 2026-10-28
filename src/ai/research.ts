@@ -64,7 +64,7 @@ export function extractPageText(html: string): string {
 }
 export function createResearchTools(options: {
   fetch: Fetcher; search(query: string, signal: AbortSignal): Promise<Research>;
-  onSources(sources: Source[]): Source[] | void; onImages(images: Json[]): void;
+  onSources(sources: Source[]): Source[] | void; onImages(images: Json[]): void; onVideos?(videos: Json[]): void;
 }): Record<string, Tool> {
   const string = (input: unknown, key: string) => { const value = (input as Record<string, unknown> | null)?.[key]; if (typeof value !== 'string' || !value.trim()) throw new Error('Argument requis'); return value.trim(); };
   return {
@@ -74,15 +74,17 @@ export function createResearchTools(options: {
       async execute(input, signal): Promise<Json> { const url = publicURL(string(input, 'url')); if (!url) return { error: 'Adresse publique HTTPS requise.' };
         const response = await options.fetch(url, { signal, redirect: 'error' }); const content = extractPageText(await boundedText(response));
         options.onSources(normalizeSources([{ url, title: new URL(url).hostname, content }])); return { url, content }; } },
-    search_images: { description: 'Trouver des images Wikimedia Commons avec leur attribution et leur page source.', parameters: { type: 'object', properties: { query: { type: 'string' } }, required: ['query'], additionalProperties: false },
+    search_images: { description: 'Rechercher et afficher de vraies images dans le chat, avec source et attribution. Ne prétends pas générer une image ni garantir une licence libre.', parameters: { type: 'object', properties: { query: { type: 'string' } }, required: ['query'], additionalProperties: false },
       async execute(input, signal): Promise<Json> {
-        const query = string(input, 'query').slice(0, 200);
-        const url = `https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrnamespace=6&gsrlimit=4&prop=imageinfo&iiprop=url%7Cextmetadata&iiurlwidth=900`;
-        const data = JSON.parse(await boundedText(await options.fetch(url, { signal }))) as { query?: { pages?: Record<string, { title: string; imageinfo?: { thumburl?: string; descriptionurl?: string; extmetadata?: Record<string, { value: string }> }[] }> } };
-        const images: Json[] = Object.values(data.query?.pages ?? {}).flatMap(page => {
-          const info = page.imageinfo?.[0]; const image = info?.thumburl && publicURL(info.thumburl); const source = info?.descriptionurl && publicURL(info.descriptionurl);
-          return image && source ? [{ url: image, source, title: page.title.replace(/^File:/, ''), credit: extractPageText(info?.extmetadata?.Artist?.value ?? 'Wikimedia Commons'), license: extractPageText(info?.extmetadata?.LicenseShortName?.value ?? 'Voir la page source') }] : [];
-        }); options.onImages(images); return images;
+        const { searchMediaImages, mediaResult } = await import('./media.ts');
+        const images = await searchMediaImages(string(input, 'query'), options.fetch, signal);
+        options.onImages(images as unknown as Json[]); return mediaResult(images);
+      } },
+    search_videos: { description: 'Rechercher et afficher de vraies vidéos Wikimedia lisibles dans le chat, avec leur source. Aucun identifiant YouTube inventé.', parameters: { type: 'object', properties: { query: { type: 'string' } }, required: ['query'], additionalProperties: false },
+      async execute(input, signal): Promise<Json> {
+        const { searchMediaVideos, mediaResult } = await import('./media.ts');
+        const videos = await searchMediaVideos(string(input, 'query'), options.fetch, signal);
+        options.onVideos?.(videos as unknown as Json[]); return mediaResult(videos);
       } },
     get_weather: { description: 'Météo actuelle et prévisions sur 7 jours pour une ville (Open-Meteo).', parameters: { type: 'object', properties: { place: { type: 'string' } }, required: ['place'], additionalProperties: false },
       async execute(input, signal): Promise<Json> {

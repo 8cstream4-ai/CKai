@@ -64,6 +64,8 @@ export interface ChatRequest {
   maxTokens?: number;
   signal?: AbortSignal;
   tools?: Record<string, Tool>;
+  /** Require this real tool on the first step, then allow normal tool choice. */
+  requiredTool?: string;
 }
 
 /** Swap the transport for an AI SDK adapter or an explicit user-selected proxy. */

@@ -21,6 +21,8 @@ jobs:
       - run: npm test
       - run: npm run lint
       - run: npm run typecheck
+      - name: Verifier les scripts des parcours Android
+        run: python -m py_compile mobile/scripts/android-smoke.py scripts/visual-audit.py scripts/android-v05.py
       - name: Installer les modules natifs et lecteurs
         working-directory: mobile
         env: { CKAI_SKIP_PROVISION: '1' }

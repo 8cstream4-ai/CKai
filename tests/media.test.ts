@@ -8,7 +8,7 @@ for(const [query,expected] of [
   ['Donne image','image'],['Montre-moi une photo de Luffy','image'],['Je voudrais des vidéos de cascades','video'],
   ['Une image de Paris','image'],['Sans photos, explique Paris',null],['Analyse cette image',null],
   ['Génère une image de Paris',null],['Comment fonctionne une image numérique ?',null],['Regarde ma vidéo',null]
-] as const) test('Intention média : '+query,()=>assert.equal(mediaRequest(query,true),expected));
+] as const) test('Intention média : '+query,()=>assert.equal(mediaRequest(query, /analyse|regarde/i.test(query)),expected));
 
 test('Commons : original accepté sans miniature, attribution et dimensions conservées',()=>{
   const items=commonsImages({query:{pages:{'1':{title:'File:Test.png',imageinfo:[{url:'https://upload.wikimedia.org/a.png',descriptionurl:'https://commons.wikimedia.org/wiki/File:Test.png',mime:'image/png',width:100,height:80,extmetadata:{Artist:{value:'<b>Auteur</b>'},LicenseShortName:{value:'CC BY-SA 4.0'}}}]}}}});
@@ -52,4 +52,9 @@ test('Outil exigé inconnu : erreur de configuration avant tout réseau',async()
   let calls=0;const transport=createChatTransport({secrets:{async get(){return 'test';},async set(){},async remove(){}},fetch:async()=>{calls++;return Response.json({});}});
   const events=await Array.fromAsync(transport.stream({provider:providers.groq,messages:[{role:'user',content:'image'}],requiredTool:'invented'}));
   assert.equal(calls,0);assert.equal(events.at(-1)?.type,'error');
+});
+
+test('Une photo jointe à identifier ne déclenche pas une recherche de nouvelles images',()=>{
+  assert.equal(mediaRequest('Photo de ma voiture, quelle marque ?',true),null);
+  assert.equal(mediaRequest('Montre-moi des photos de ce modèle de voiture',true),'image');
 });

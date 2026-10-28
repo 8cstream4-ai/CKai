@@ -1,6 +1,6 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Keyboard, Modal, Platform, Pressable, ScrollView, Share, Text, TextInput, View, useWindowDimensions } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -125,7 +125,9 @@ function ChatScreen({ colors: baseColors }: { colors: Colors }) {
     return () => clearTimeout(timer);
   }, [draft, draftId, attachments]);
   const busy = runtime.busy || submitting || !!importing;
-  const animate = runtime.preferences.animations !== 'reduced';
+  const [screenFocused,setScreenFocused]=useState(true);
+  useFocusEffect(useCallback(()=>{setScreenFocused(true);return()=>setScreenFocused(false);},[]));
+  const animate = runtime.preferences.animations !== 'reduced' && screenFocused;
   async function send() {
     if (runtime.busy) { runtime.stop(); return; }
     if ((!draft.trim() && !attachments.length) || submitting || importing) return;

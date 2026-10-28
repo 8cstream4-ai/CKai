@@ -94,6 +94,7 @@ export function VideoCard({ item, colors, onPlay }: { item: Attachment; colors: 
         {item.duration ? <Text style={{ position: 'absolute', bottom: 10, right: 10, color: '#FFF', backgroundColor: '#08080ACC', padding: 6, borderRadius: 8, fontSize: 11 }}>{Math.floor(item.duration / 60)}:{String(Math.round(item.duration) % 60).padStart(2, '0')}</Text> : null}
       </View>
       <Text numberOfLines={2} style={{ color: colors.ink, padding: 12, fontSize: 12, lineHeight: 18 }}>{item.name}</Text>
+      {item.note ? <Text style={{ color: colors.muted, paddingHorizontal: 12, paddingBottom: 12, fontSize: 11, lineHeight: 17 }}>{item.note}</Text> : null}
     </Pressable>
     {item.source ? <Pressable accessibilityRole="link" accessibilityLabel={'Source : ' + item.name} onPress={() => { void openSource(item.source!); }} style={{ paddingHorizontal: 12, paddingBottom: 12, minHeight: 48, justifyContent: 'center' }}><Text numberOfLines={2} style={{ color: colors.muted, fontSize: 10, lineHeight: 16 }}>{item.credit || 'Source vidéo'}{item.license ? ' · ' + item.license : ''}</Text></Pressable> : null}
   </View>;

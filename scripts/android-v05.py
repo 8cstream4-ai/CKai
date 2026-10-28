@@ -1,5 +1,6 @@
 """Real Android media imports and local notification lifecycle; no provider key or fake AI answer."""
 import json, pathlib, re, runpy, shutil, subprocess, time
+import xml.etree.ElementTree as ET
 helpers=runpy.run_path('mobile/scripts/android-smoke.py')
 adb,wait,tap,dump,label=(helpers[name] for name in ['adb','wait','tap','dump','label'])
 out=pathlib.Path('artifacts/v05-proof');out.mkdir(parents=True,exist_ok=True)
@@ -7,7 +8,7 @@ def shot(name):
     time.sleep(.5);(out/name).write_bytes(adb('exec-out','screencap','-p'))
 def has(text):
     try:return any(text.casefold() in label(node).casefold() for node in dump().iter('node'))
-    except (subprocess.SubprocessError,FileNotFoundError):return False
+    except (subprocess.SubprocessError,FileNotFoundError,ET.ParseError):return False
 def find_scrolling(text):
     for _ in range(7):
         if has(text):return
@@ -24,14 +25,19 @@ def choose_document(name):
             if has(title):tap(title);break
     wait(name);tap(name)
     # Some system document pickers require a final confirmation for multi-select.
-    if has('OPEN'):tap('OPEN')
+    for node in dump().iter('node'):
+        if node.attrib.get('text','').strip().casefold() in ['open','ouvrir','select','sélectionner']:
+            coords=list(map(int,re.findall(r'\d+',node.attrib['bounds'])))
+            adb('shell','input','tap',str((coords[0]+coords[2])//2),str((coords[1]+coords[3])//2));break
 def service_running():
     text=adb('shell','dumpsys','activity','services','app.ckai.privateassistant').decode(errors='replace')
-    return 'app.ckai.background.CKaiReplyService' in text and ('isForeground=true' in text or 'foregroundId=6101' in text)
+    return ('app.ckai.background.CKaiReplyService' in text, 'isForeground=true' in text or 'foregroundId=6101' in text)
 def wait_service(expected,seconds=12):
     end=time.monotonic()+seconds
     while time.monotonic()<end:
-        if service_running()==expected:return
+        present,foreground=service_running()
+        if expected and present and foreground:return
+        if not expected and not present:return
         time.sleep(.3)
     raise AssertionError('Foreground reply service expected active='+str(expected))
 def notification_dump():

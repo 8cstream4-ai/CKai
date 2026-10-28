@@ -14,7 +14,8 @@ export interface RichMessage { attachments?: Attachment[]; sources?: import('../
 export function dataDirectory() { const dir = new Directory(Paths.document, 'ckai-files'); dir.create({ intermediates: true, idempotent: true }); return dir; }
 export function keepFile(uri: string, name: string) { const file = new File(dataDirectory(), `${randomUUID()}-${name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-100)}`); new File(uri).copy(file); return file; }
 async function picture(source: Parameters<typeof ImageManipulator.manipulate>[0]) {
-  const context = ImageManipulator.manipulate(source); context.resize({ width: 1280 });
+  const context = ImageManipulator.manipulate(source);
+  if (typeof source !== 'object' || !source || !('width' in source) || typeof source.width !== 'number' || source.width > 1280) context.resize({ width: 1280 });
   const image = await context.renderAsync();
   try { const result = await image.saveAsync({ format: SaveFormat.JPEG, compress: 0.78 }); return keepFile(result.uri, 'image.jpg').uri; }
   finally { image.release(); context.release(); }
@@ -36,9 +37,10 @@ export async function importAttachment(asset: { uri: string; name: string; mime?
       const duration = player.duration || (asset.duration ?? 0) / 1000;
       const times = duration > 1 ? [Math.min(0.2, duration / 10), duration * 0.5, Math.max(0, duration - 0.3)] : [0];
       const thumbnails = await player.generateThumbnailsAsync(times, { maxWidth: 1280, maxHeight: 1280 });
-      for (const thumb of thumbnails) frames.push(await picture(thumb));
+      try { for (const thumb of thumbnails) frames.push(await picture(thumb)); }
+      finally { for (const thumb of thumbnails) thumb.release(); }
       if (!frames.length) throw new Error('Aucune image n’a pu être extraite de cette vidéo.');
-      return { id: randomUUID(), kind, name: asset.name, uri: file.uri, mime: mime || 'video/mp4', size, preview: frames[0]!, frames, duration,
+      return { id: randomUUID(), kind, name: asset.name, uri: file.uri, mime: mime || (ext === 'mov' ? 'video/quicktime' : ext === 'webm' ? 'video/webm' : 'video/mp4'), size, preview: frames[0]!, frames, duration,
         note: `${frames.length} images échantillonnées sur ${Math.round(duration)} s. Analyse visuelle partielle, sans piste audio.` };
     } catch (error) { file.delete(); throw error; } finally { player.release(); }
   }

@@ -23,6 +23,7 @@ export function mediaRequest(textValue: string, hasAttachments = false): 'image'
   if (/\b(?:sans|pas d[eu']?)\s*(?:images?|photos?|videos?)/.test(value)) return null;
   if (/\b(?:genere|dessine|cree)\b/.test(value)) return null;
   if (hasAttachments && /\b(?:analyse|decris|explique|resume|traduis|compare|regarde)\b/.test(value)) return null;
+  if (hasAttachments && !/\b(?:montre|donne|envoie|affiche|cherche|trouve|veux|voudrais)\b/.test(value)) return null;
   const noun = /\b(?:images?|photos?|illustrations?|visuels?|videos?|clips?)\b/.exec(value);
   if (!noun || !(/\b(?:montre|donne|envoie|affiche|cherche|trouve|veux|voudrais)\b/.test(value) || noun.index < 8)) return null;
   return /^(?:videos?|clips?)$/.test(noun[0]) ? 'video' : 'image';

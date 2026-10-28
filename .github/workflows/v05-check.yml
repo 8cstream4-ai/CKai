@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['.github/workflows/v05-check.yml', 'scripts/android-v05.py']
+    paths: ['.github/workflows/v05-check.yml', 'scripts/android-v05.py', 'mobile/scripts/android-smoke.py']
 permissions:
   contents: read
   actions: read

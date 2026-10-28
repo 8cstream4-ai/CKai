@@ -24,7 +24,7 @@ def wait(text, seconds=50):
         try:
             root = dump()
             nodes=list(root.iter('node'))
-            if any("Pixel Launcher isn't responding" in label(node) for node in nodes):
+            if any(any(title in label(node) for title in ["Pixel Launcher isn't responding", "Quickstep isn't responding"]) for node in nodes):
                 close=next((node for node in nodes if node.attrib.get('resource-id')=='android:id/aerr_close'),None)
                 if close is not None:
                     coords=list(map(int,re.findall(r'\d+',close.attrib['bounds'])))

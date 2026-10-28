@@ -1,0 +1,10 @@
+{
+  "synthetic": true,
+  "providerRequest": false,
+  "realPhotoImport": true,
+  "realVideoImportAndPlayback": true,
+  "backgroundTimerAndCompletionNotification": true,
+  "notificationOpensOwningChat": true,
+  "notificationCancelStopsService": true,
+  "note": "Local service probe, not a live Groq generation; test account contains no API key."
+}
